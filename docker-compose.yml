@@ -1,0 +1,68 @@
+version: "3"
+services:
+  mongo:
+    container_name: mongo
+    restart: on-failure:10
+    image: andresvidal/rpi3-mongodb3
+    # build:
+    #   context: .
+      # dockerfile: Dockerfilee.mymongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=dbuser
+      - MONGO_INITDB_ROOT_PASSWORD=mydbdbmy
+      - MONGO_INITDB_DATABASE=db
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:27017"
+    command: bash -c "mongod --repair && mongod"  # added my answer in `https://github.com/wekan/wekan-mongodb/issues/6`
+
+  mongoClientTemp:
+    image: andresvidal/rpi3-mongodb3
+    #image: alpine:latest
+    container_name: mongoClientTemp
+    links:
+      - mongo
+    volumes:
+      - ./deployment_scripts:/deployment_scripts
+    command: 
+      #- mongo --host mongo --eval  "db.getSiblingDB('dashboard').createUser({user:'db', pwd:'dbpass', roles:[{role:'readWrite',db:'dashboard'}]});"
+      - /deployment_scripts/add_user.sh
+    depends_on:
+      - mongo
+
+  server:
+    container_name: server
+    restart: on-failure:10
+    build: ./server/  # this is also the context folder of the build
+    volumes:
+      - ./server/:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "443:443"
+      - "80:80"
+    expose:
+      - "80"
+      - "443"
+    depends_on:
+      - mongoClientTemp
+    links:
+      - mongo
+    command: npm run devserver
+
+  client:
+    container_name: client
+    restart: on-failure:10
+    build: ./client/  # this is also the context folder of the build
+    volumes:
+      - ./client/:/usr/src/app/
+      - /usr/src/app/node_modules
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    command: npm start
+    # env_file:
+    #   - ./.env
