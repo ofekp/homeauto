@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-// run using "node populated mongodb://dbuser:mydbdbmy@mongo:27017/db" from the app container
+// run using "node populatedb mongodb://dbuser:mydbdbmy@mongo:27017/db" from the server container
 
 console.log('This script populates some test books, authors, genres and bookinstances to your database. Specified database as argument - e.g.: populatedb mongodb://your_username:your_password@your_dabase_url');
 

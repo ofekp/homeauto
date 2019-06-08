@@ -1,4 +1,4 @@
-version: "3"
+version: "3.7"
 services:
   mongo:
     container_name: mongo
@@ -10,7 +10,7 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=dbuser
       - MONGO_INITDB_ROOT_PASSWORD=mydbdbmy
-      - MONGO_INITDB_DATABASE=db
+      #- MONGO_INITDB_DATABASE=db
     volumes:
       - ./data:/data/db
     ports:
@@ -19,7 +19,7 @@ services:
 
   mongoClientTemp:
     image: andresvidal/rpi3-mongodb3
-    #image: alpine:latest
+    #image: alpine:latest  # for non rpi projects
     container_name: mongoClientTemp
     links:
       - mongo
@@ -31,19 +31,43 @@ services:
     depends_on:
       - mongo
 
+  certbot:
+    container_name: certbot
+    restart: always
+    build: ./certbot/  # this is also the context folder of the build
+    environment:  # not used yet
+      - DOMAIN
+    volumes:
+      - certbot-webroot:/webroots/${DOMAIN}/.well-known
+      - certbot-letsencrypt:/etc/letsencrypt
+
+  upnp:
+    container_name: upnp
+    restart: on-failure:10
+    network_mode: host  # will expose external network to this container while it runs
+    build:
+      context: ./upnp/  # this is also the context folder of the build
+      network: host  # will expose external network to this container on build
+
   server:
     container_name: server
-    restart: on-failure:10
+    restart: always
     build: ./server/  # this is also the context folder of the build
     volumes:
       - ./server/:/usr/src/app
       - /usr/src/app/node_modules
+      - certbot-webroot:/usr/src/app/public/.well-known
+      - certbot-letsencrypt:/etc/letsencrypt
     ports:
+      - "80:28081"
       - "443:443"
-      - "80:80"
+      #- "1900:1900/udp"
     expose:
       - "80"
       - "443"
+      #- "1900/udp"
+    environment:
+      PORT: 28081
     depends_on:
       - mongoClientTemp
     links:
@@ -66,3 +90,7 @@ services:
     command: npm start
     # env_file:
     #   - ./.env
+
+volumes:
+  certbot-webroot:
+  certbot-letsencrypt:

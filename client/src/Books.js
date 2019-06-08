@@ -21,7 +21,15 @@ class Books extends Component {
   componentDidMount() {
     this.callApi()
       .then(res => {
-          this.setState({ title: res.title, data: res.book_list });
+          //this.setState({ title: res.title, data: res.book_list });
+          console.log(res);
+        })
+      .catch(err => console.log(err));
+
+    this.callApiReq()
+      .then(res => {
+          //this.setState({ title: res.title, data: res.book_list });
+          console.log(res);
         })
       .catch(err => console.log(err));
   }

@@ -12,15 +12,16 @@
 
 USER_NAME="dbuser"
 PASSWORD="mydbdbmy"
+MONGO_DATABASE_NAME="db"
 
-until mongo --host mongo --eval "print(\"waited for connection\")"
+until mongo $MONGO_DATABASE_NAME --host mongo --eval "print(\"waited for connection\")"
 do
     sleep 2
 done
 
 echo "Looking for user in DB..."
 #mongo --host mongo --eval "printjson(db.users.find().toArray())"
-found_username=$(mongo --host mongo --eval "printjson(db.getUser(\"$USER_NAME\"))" --quiet | grep "$USER_NAME" | head -1)
+found_username=$(mongo $MONGO_DATABASE_NAME --host mongo --eval "printjson(db.getUser(\"$USER_NAME\"))" --quiet | grep "$USER_NAME" | head -1)
 
 if test "${found_username#*$USER_NAME}" != "$found_username"
 then
@@ -31,5 +32,5 @@ else
 fi
 
 echo "Adding user to MongoDB..."
-mongo --host mongo --eval "db.createUser({ user: \"$USER_NAME\", pwd: \"$PASSWORD\", roles: [ { role: \"root\", db: \"admin\" } ] });"
+mongo --host mongo $MONGO_DATABASE_NAME --eval "db.createUser({ user: \"$USER_NAME\", pwd: \"$PASSWORD\", roles: [ { role: \"root\", db: \"admin\" } ] });"
 echo "User added."

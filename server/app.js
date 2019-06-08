@@ -1,12 +1,15 @@
 var express = require('express');
+var forceSSL = require('express-force-ssl');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var path = require('path');
+var bodyParser = require('body-parser')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var catalogRouter = require('./routes/catalog');
+var homeAutoRouter = require('./routes/homeAuto');
 
 var app = express();
 
@@ -15,6 +18,9 @@ app.locals.moment = require('moment');
 
 // set up MongoDB connection
 var mongoose = require('mongoose');
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
 var mongoDB = 'mongodb://dbuser:mydbdbmy@mongo:27017/db'  // `mongo` is the name of the container, it also functions as the IP address!
 mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
@@ -29,6 +35,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(forceSSL);
 app.use(express.static(path.join(__dirname, 'public')));
 // add React static files
 const CLIENT_BUILD_PATH = path.join(__dirname, '../client/build');
@@ -38,6 +45,7 @@ app.use(express.static(CLIENT_BUILD_PATH));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/catalog', catalogRouter);
+app.use('/home-auto', homeAutoRouter);
 // all remaining requests return the React app, so it can handle routing.
 app.get('*', function(req, res) {
   res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
@@ -59,5 +67,8 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+// home assitant API
+app.use(bodyParser.json());
 
 module.exports = app;
