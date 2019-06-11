@@ -81,13 +81,13 @@ exports.login = async(account) => {
         var response3 = await axios.post('https://www.riscocloud.com/ELAS/WebUI/SiteLogin', body_str, {headers: headers3});
         var body3 = await response3["data"];
         if (response3.status !== 200) {
-            console.log(body3.message);
+            //console.log(body3.message);
             return null;
         }
 
         return cookie_str;
     } catch(error) {
-        console.log(error);
+        //console.log(error);
     }
 
     return null;
@@ -115,6 +115,9 @@ exports.action = async(conv, account, riscoAction) => {
         cookie_str = conv.data.risco_cookie;
     } else {
         cookie_str = await this.login(account);
+        if (cookie_str == null) {
+            return null;
+        }
         conv.data.risco_cookie = cookie_str;
     }
 
