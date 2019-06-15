@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 
-function Book(props) {
+function Device(props) {
     return (
       <li>
           <strong>{props.value.title}</strong>
@@ -9,7 +9,7 @@ function Book(props) {
     );
   }
 
-class Books extends Component {
+class Devices extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -42,7 +42,7 @@ class Books extends Component {
   }
 
   renderBook(book_data) {
-    return <Book 
+    return <Device 
       key={book_data._id}
       value={book_data}
     />;
@@ -70,4 +70,4 @@ class Books extends Component {
   }
 }
 
-export default Books;
+export default Devices;

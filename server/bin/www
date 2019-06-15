@@ -6,8 +6,8 @@ var http = require('http');
 const https = require('https');
 const fs = require('fs');
 
-const configPath = './server.cfg';
-const config = JSON.parse(fs.readFileSync(configPath, 'UTF-8'));
+//const configPath = './server.cfg';
+//const config = JSON.parse(fs.readFileSync(configPath, 'UTF-8'));
 
 /**
  * Get port from environment and store in Express.
@@ -21,16 +21,19 @@ app.set('port', port);
  * Create HTTP server.
  */
 var options = null;
-if (fs.existsSync(config.cert.keyPath)) {
-  options = {
-    key: fs.readFileSync(config.cert.keyPath, 'utf8'),
-    cert: fs.readFileSync(config.cert.certPath, 'utf8'),
-    ca: fs.readFileSync(config.cert.caPath, 'utf8')
-  };
-}
+// if (fs.existsSync(process.env.KEY_PATH)) {
+//   console.log("Strting as HTTPS.");
+//   options = {
+//     key: fs.readFileSync(process.env.KEY_PATH, 'utf8'),
+//     cert: fs.readFileSync(process.env.CERT_PATH, 'utf8'),
+//     ca: fs.readFileSync(process.env.CA_PATH, 'utf8')
+//   };
+// } else {
+//   console.log("Strting as HTTPS.");
+// }
 
 var server = http.createServer(app);
-const serverSSL = https.createServer(options, app);
+//const serverSSL = https.createServer(options, app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -40,9 +43,9 @@ server.listen(port, host);
 server.on('error', onError);
 server.on('listening', onListening);
 
-serverSSL.listen(443);
-serverSSL.on('error', onError);
-serverSSL.on('listening', onListening);
+// serverSSL.listen(444);
+// serverSSL.on('error', onError);
+// serverSSL.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -101,5 +104,6 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  //debug('Listening on ' + bind);
+  console.log('Listening on ' + bind);
 }

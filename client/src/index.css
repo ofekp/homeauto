@@ -1,6 +1,6 @@
 body {
-  background-color: #FFCC00;
-  padding: 20px;
+  background-color: #575757;
+  padding: 0px 0px;
   margin: 0;
 }
 h1, h2, p, ul, li {
@@ -12,8 +12,9 @@ ul.header li {
   margin: 0;
 }
 ul.header {
-  background-color: #111;
+  background-color: rgb(35, 139, 170);
   padding: 0;
+  margin: 0px;
 }
 ul.header li a {
   color: #FFF;
@@ -25,6 +26,7 @@ ul.header li a {
 .content {
   background-color: #FFF;
   padding: 20px;
+  box-shadow: inset 0px 4px 9px 0px #afafaf;
 }
 .content h2 {
   padding: 0;

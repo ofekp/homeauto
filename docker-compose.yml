@@ -1,5 +1,30 @@
 version: "3.7"
 services:
+
+  nginx: 
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/template/nginx.conf.template
+      - ./nginx_error.log:/etc/nginx/error_log.log
+      - ./options-ssl-nginx.conf:/etc/nginx/options-ssl-nginx.conf
+      - certbot-webroot:/webroots/${DOMAIN}/.well-known
+      - certbot-letsencrypt:/etc/letsencrypt
+    depends_on:
+      - client
+      - server
+    ports:  # host(rpi):container or only container
+      - 80:80
+      - 443:443
+    environment:
+      - KEY_PATH
+      - CERT_PATH
+      - CA_PATH
+      - DOMAIN
+    # command to replace env vars in the nginx.conf file
+    # note that \$ escaping does not work
+    command: /bin/bash -c "envsubst '$$KEY_PATH $$CERT_PATH $$CA_PATH $$DOMAIN' < /etc/nginx/template/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'" 
+
   mongo:
     container_name: mongo
     restart: on-failure:10
@@ -34,9 +59,10 @@ services:
   certbot:
     container_name: certbot
     restart: always
-    build: ./certbot/  # this is also the context folder of the build
-    environment:  # not used yet
-      - DOMAIN
+    build:
+      context: ./certbot/  # this is also the context folder of the build
+      args:
+        - DOMAIN=${DOMAIN}
     volumes:
       - certbot-webroot:/webroots/${DOMAIN}/.well-known
       - certbot-letsencrypt:/etc/letsencrypt
@@ -56,18 +82,16 @@ services:
     volumes:
       - ./server/:/usr/src/app
       - /usr/src/app/node_modules
-      - certbot-webroot:/usr/src/app/public/.well-known
+      - certbot-webroot:/webroots/${DOMAIN}/.well-known
       - certbot-letsencrypt:/etc/letsencrypt
-    ports:
-      - "80:28081"
-      - "443:443"
-      #- "1900:1900/udp"
-    expose:
+    ports:  # host(rpi):container or only container
       - "80"
-      - "443"
-      #- "1900/udp"
     environment:
-      PORT: 28081
+      - PORT=80
+      - KEY_PATH
+      - CERT_PATH
+      - CA_PATH
+      - DOMAIN
     depends_on:
       - mongoClientTemp
     links:
@@ -77,19 +101,24 @@ services:
   client:
     container_name: client
     restart: on-failure:10
-    build: ./client/  # this is also the context folder of the build
+    build: 
+      context: ./client/  # this is also the context folder of the build
+      network: host
+      args:
+        - CERT_PATH=${CERT_PATH}
+    environment:
+      - DOMAIN
+      - KEY_PATH
+      - CERT_PATH
+      - CA_PATH
     volumes:
       - ./client/:/usr/src/app/
       - /usr/src/app/node_modules
-    expose:
-      - "3000"
     ports:
-      - "3000:3000"
+      - "80"
     depends_on:
       - server
     command: npm start
-    # env_file:
-    #   - ./.env
 
 volumes:
   certbot-webroot:

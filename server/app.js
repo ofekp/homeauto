@@ -35,13 +35,16 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(forceSSL);
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(forceSSL);
+//app.use(express.static(path.join(__dirname, 'public')));
 // add React static files
 const CLIENT_BUILD_PATH = path.join(__dirname, '../client/build');
-app.use(express.static(CLIENT_BUILD_PATH));
+//app.use(express.static(CLIENT_BUILD_PATH));
 
 // api routes
+app.use("/.well-known/acme-challenge", express.static("/webroots/" + process.env.DOMAIN + "/.well-known/acme-challenge"));
+
+//app.use(express.static(__dirname + '/static', { dotfiles: 'allow' } ))
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/catalog', catalogRouter);
@@ -51,11 +54,11 @@ app.get('*', function(req, res) {
   res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
 });
 
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
+// app.use(function(req, res, next) {
+//   var err = new Error('Not Found');
+//   err.status = 404;
+//   next(err);
+// });
 
 // error handler
 app.use(function(err, req, res, next) {

@@ -2,11 +2,10 @@ const User = require('../models/user');
 const Account = require('../models/account');
 const async = require('async');
 const risco = require('./risco');
-const fs = require("fs");
 
-const configPath = './server.cfg';
-const config = JSON.parse(fs.readFileSync(configPath, 'UTF-8'));
-const actionOnGoogleClientId = config.actionOnGoogle.clientId;
+const actionOnGoogleClientId = process.env.ACTION_ON_GOOLE_CLIENT_ID;
+
+console.log(actionOnGoogleClientId);
 
 const {
     dialogflow,
@@ -70,6 +69,22 @@ risco_operation_carousel = new Carousel({
       }
     }
 })
+
+// riscoAppCard = new BasicCard({
+//     text: `To use this app you will need to add a Risco device. Follow the link below to create a device.`, // Note the two spaces before '\n' required for
+//                                  // a line break to be rendered in the card.
+//     subtitle: 'This is a subtitle',
+//     title: 'Title: this is a title',
+//     buttons: new Button({
+//       title: 'This is a button',
+//       url: 'https://' + process.env.DOMAIN + ':3000/',
+//     }),
+//     image: new Image({
+//       url: 'https://example.com/image.png',
+//       alt: 'Image alternate text',
+//     }),
+//     display: 'CROPPED',
+//   });
 
 const createAccount = async(user_id, account_type, user_name, password, additional_data, device_name) => {
 
@@ -206,25 +221,6 @@ app.intent('add_device', (conv, params, signin) => {
         return conv.ask('I can only support Risco home security system currently. What would you like to do then?');
     }
     conv.ask('Great! Let\'s set up a Risco device, what is your Risco username?');
-    conv.ask(new BasicCard({
-        text: `This is a basic card.  Text in a basic card can include "quotes" and
-        most other unicode characters including emoji 📱.  Basic cards also support
-        some markdown formatting like *emphasis* or _italics_, **strong** or
-        __bold__, and ***bold itallic*** or ___strong emphasis___ as well as other
-        things like line  \nbreaks`, // Note the two spaces before '\n' required for
-                                     // a line break to be rendered in the card.
-        subtitle: 'This is a subtitle',
-        title: 'Title: this is a title',
-        buttons: new Button({
-          title: 'This is a button',
-          url: 'https://assistant.google.com/',
-        }),
-        image: new Image({
-          url: 'https://example.com/image.png',
-          alt: 'Image alternate text',
-        }),
-        display: 'CROPPED',
-      }));
 });
 
 app.intent('type_risco_username', (conv, params, signin) => {

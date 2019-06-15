@@ -1,0 +1,31 @@
+events {
+}
+
+http {
+  server {
+    server_name ${DOMAIN};
+
+    error_log /etc/nginx/error_log.log warn;
+    client_max_body_size 20m;
+
+    listen 80;
+    listen 443 ssl;
+    ssl_certificate ${CERT_PATH};
+    ssl_certificate_key ${KEY_PATH};
+    include /etc/nginx/options-ssl-nginx.conf;
+
+    location /home-auto {
+        proxy_pass http://server:80;
+        rewrite ^(/home-auto/.*)$ $1 break;
+    }
+
+    location / {
+        proxy_pass http://client:80;
+        rewrite ^(.*)$ $1 break;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_read_timeout 86400;
+    }
+  }
+}

@@ -6,24 +6,23 @@ import {
   HashRouter
 } from "react-router-dom";
 import Home from "./Home";
-import Books from "./Books";
+import Devices from "./Devices";
+import RiscoLogin from "./RiscoLogin";
 
 class App extends Component {
   render() {
     return (
       <HashRouter>
         <div>
-          <h1>Simple SPA</h1>
           <ul className="header">
-            <li><NavLink exact to="/catalog">Home</NavLink></li>
-            <li><NavLink to="/catalog/books">Books</NavLink></li>
-            <li><NavLink to="/catalog/authors">Authors</NavLink></li>
-            <li><NavLink to="/catalog/genres">Genres</NavLink></li>
-            <li><NavLink to="/catalog/bookinstances">Book Instances</NavLink></li>
+            <li><NavLink exact to="/">Home-Auto</NavLink></li>
+            <li><NavLink to="/devices">My Devices</NavLink></li>
+            <li><NavLink to="/risco_login">Add Risco Device</NavLink></li>
           </ul>
           <div className="content">
-            <Route exact path="/catalog" component={Home}/>
-            <Route path="/catalog/books" component={Books}/>
+            <Route exact path="/" component={Home}/>
+            <Route path="/devices" component={Devices}/>
+            <Route path="/risco_login" component={RiscoLogin}/>
           </div>
         </div>
       </HashRouter>

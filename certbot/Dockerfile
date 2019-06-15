@@ -9,7 +9,8 @@ FROM debian:jessie
 RUN apt-get update \
    && apt-get install -y cron bash wget
 
-RUN echo 'DOMAIN is [${DOMAIN}]'
+ARG DOMAIN
+RUN echo 'DOMAIN is [$DOMAIN]'
 RUN mkdir -p /webroots/${DOMAIN}/.well-known /scripts
 
 WORKDIR /scripts

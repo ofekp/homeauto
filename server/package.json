@@ -23,7 +23,8 @@
     "morgan": "~1.9.0",
     "pug": "^2.0.3",
     "querystring": "^0.2.0",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "serve-index": "^1.9.1"
   },
   "devDependencies": {
     "nodemon": "^1.19.1"

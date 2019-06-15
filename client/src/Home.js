@@ -1,5 +1,14 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import { GoogleLogin } from 'react-google-login';
+
+const responseGoogle = (response) => {
+  console.log(response);
+}
+
+// TODO: Continue with:
+// https://developers.google.com/identity/sign-in/web/sign-in
+// https://developers.google.com/actions/identity/google-sign-in-oauth?creation=no
 
 class Home extends Component {
   constructor(props) {
@@ -28,21 +37,16 @@ class Home extends Component {
   render() {
     return (
       <div>
-        <h2>Local Library Home</h2>
+        <h2>Welcome to Home Auto</h2>
         <p>Welcome to {this.state.title}, a very basic Express website as a tutorial example</p>
-        <h2>Dynamic content</h2>
-        <ul>
-          <li><strong>Books: </strong> {this.state.data.book_count}</li>
-          <li><strong>Copies: </strong> {this.state.data.book_instance_count}</li>
-          <li><strong>Available copies: </strong> {this.state.data.book_instance_available_count}</li>
-          <li><strong>Authors: </strong> {this.state.data.author_count}</li>
-          <li><strong>Genres: </strong> {this.state.data.genre_count}</li>
-        {/* li #[string Books:] !{data.book_count}
-      li #[string Copies:] !{data.book_instance_count}
-      li #[string Available copies:] !{data.book_instance_available_count}
-      li #[string Authors:] !{data.author_count}
-      li #[string Genres:] !{data.genre_count} */}
-        </ul>
+        <GoogleLogin
+          clientId="567886753913-5aird6relq58gsolp453pa2q4hl745hb.apps.googleusercontent.com"
+          buttonText="Login"
+          onSuccess={responseGoogle}
+          onFailure={responseGoogle}
+          cookiePolicy={'single_host_origin'}
+        />,
+        {/* document.getElementById('googleButton') */}
       </div>
     );
   }
