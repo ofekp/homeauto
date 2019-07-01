@@ -92,6 +92,7 @@ services:
       - CERT_PATH
       - CA_PATH
       - DOMAIN
+      - ACTION_ON_GOOLE_CLIENT_ID
     depends_on:
       - mongoClientTemp
     links:

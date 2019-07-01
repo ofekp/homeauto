@@ -1,11 +1,12 @@
 const User = require('../models/user');
 const Account = require('../models/account');
-const async = require('async');
 const risco = require('./risco');
 
-const actionOnGoogleClientId = process.env.ACTION_ON_GOOLE_CLIENT_ID;
+const async = require('async');
+const axios = require('axios');
+const querystring = require('querystring');
 
-console.log(actionOnGoogleClientId);
+const actionOnGoogleClientId = process.env.ACTION_ON_GOOLE_CLIENT_ID;
 
 const {
     dialogflow,
@@ -14,15 +15,20 @@ const {
     BasicCard,
     Button,
     SignIn,
-    Permission
+    Permission,
+    UnauthorizedError
 } = require("actions-on-google");
   
 const app = dialogflow({
     clientId: actionOnGoogleClientId
 });
 
-const getUser = async(gid) => {
-    return await User.findOne({ 'gid': gid }).exec();
+const getUserByEmail = async(email) => {
+    return await User.findOne({ 'email': email }).exec();
+}
+
+const getUserById = async(id) => {
+    return await User.findOne({ 'user': id }).exec();
 }
 
 const getAccounts = async(user_id, account_type) => {
@@ -38,19 +44,15 @@ getRiscoAccount = async(user_id) => {
     return accounts[0];
 }
 
-const createUser = async(gid, email, locale) => {
-    // data from the form is valid
-    var user = new User({
-        gid: gid,
-        email: email,
-        locale: locale,
-    });
+const createUser = async(email, name) => {
 
-    await user.save(function(err) {
-        if (err) { return false }
-        // successful
-        return true;
-    });
+    return await User.updateOne( 
+        { 'email': email, 'name': name },
+        {
+            email: email,
+            name: name,
+        },
+        { upsert : true }).exec();
 }
 
 risco_operation_carousel = new Carousel({
@@ -136,64 +138,62 @@ const deleteAccount = async(user_id, account_type, device_name) => {
         { 'user': user_id, 'account_type': account_type, 'device_name': device_name.toLowerCase() }).exec();
 }
 
-app.intent("Default Welcome Intent", async(conv) => {
-    // if (signin.status !== 'OK') {
-    //     return conv.ask(new SignIn('To personalize Home Auto, you need to sign in before using the app.'));
-    // }
-
-    const userId = conv.user.raw.userId;
-    const last_seen = conv.user.last.seen;
-
-    var user = await getUser(userId);
-
-    if (user == null) {
-        conv.ask('Hello there, this is your first time here.');
-        let profile = conv.user.raw.profile;
-        if (profile == undefined || profile.email == undefined) {
-            return conv.ask(new Permission({
-                context: 'To use this app',
-                permissions: 'EMAIL',
-            }));
-        } else {
-            // email is available, create the user
-            email = profile.email;
-            locale = conv.user.raw.locale;
-            user = await createUser(userId, email, locale);
-            if (user == null) {
-                return conv.close('Hmm, I encountered a problem, please try again later.');
-            }
-        }
-    }
-
-    // TODO: update user last seen
-    conv.data.user_id = user.id;
-    accounts = await getAccounts(user.id, 'RISCO');
-    if (accounts.length === 0) {
-        conv.ask('Please proceed to creating a device before continuing. Simply say "set up risco device".');
-    } else {
-        conv.data.accounts = accounts;
-        conv.ask('Hey, how can I help?');
-    }
+// Intent that starts the account linking flow.
+app.intent('Start Sign In', (conv) => {
+    conv.ask(new SignIn('To personalize'));
 });
-  
-// Create Dialogflow intent with `actions_intent_PERMISSION` event
-app.intent('get_email_permission', async(conv, input, granted) => {
-    if (granted) {
-        userId = conv.user.raw.userId
-        profile = conv.user.raw.profile;
-        locale = conv.user.raw.locale;
-        if (profile != undefined && profile.email != undefined) {
-            // store user in DB
-            email = profile.email;
-            await createUser(userId, email, locale);
-            conv.ask(`Thank you, this is the email I found: ${email}. How can I help?`);
-        } else {
-            conv.close(`Thank you, but I still could not find your email, bye!`);
-        }
-    } else {
-        // user did not grant permission
-        conv.close(`I cannot proceed before getting your email, bye!`);
+
+app.intent('Get Signin', async (conv, params, signin) => {
+    if (signin.status !== 'OK') {
+        return conv.close('Let\'s try again next time.');
     }
+
+    const payload = conv.user.profile.payload;
+    const email = payload.email;
+
+    if (!conv.data.id && email) {
+        var user = await getUserByEmail(email);
+
+        if (!user) {
+            // create a new user
+            user = await createUser(email, payload.name);
+        }
+
+        // place the user id in the conversation JSON
+        conv.data.id = user.id;
+    }
+
+    if (conv.data.id) {
+        // conv.user is persistant across conversations
+        conv.user.storage.id = conv.data.id;
+    }
+
+    conv.close(`Thank you for signing in! Please proceed to adding a device at https://ofekp.dynu.net then you will be able to control it from this app.`);
+});
+
+app.intent("Default Welcome Intent", async (conv) => {      
+    console.log("Default Welcome Intent");
+    console.log(conv.user.profile);
+
+    const {payload} = conv.user.profile;
+    const name = payload ? ` ${payload.given_name}` : 'there';
+    // conv.user.storage.id contains the id of the record for the user in a Firestore DB
+    if (conv.user.storage.id) {
+        const user = await getUserById(conv.user.id);
+        if (!user) {
+            return conv.ask(`There seems to be a problem with your account. Please try sigining in again.`);
+        }
+
+        // the user was found
+        var riscoAccount = getRiscoAccount(conv.user.id)
+        if (!riscoAccount) {
+            return conv.ask(`You must add a device first, please visit https://ofekp.dynu.net to add a device.`);
+        }
+
+        return conv.ask(`Hey ${name}, how can I help?`);
+    }
+
+    return conv.ask(`You must sign in first. Try saying \"I want to sign in\".`);
 });
 
 app.intent('what_can_you_do', async(conv, params, signin) => {

@@ -1,20 +1,19 @@
 const User = require('../models/user');
 const Account = require('../models/account');
 const async = require('async');
+const jwt_decode = require('jwt-decode');
+const TokenGenerator = require('uuid-token-generator');
 
 const {body, validationResult} = require('express-validator/check');
-const {sanitizeBody} = require('express-validator/filter');
+const {sanitizeBody} = require('express-validator/filter');  
 
-// Handle Gid create on POST.
+// Handle user create on POST.
 exports.user_create_post = [
     // validate fields
-    body('gid').isLength({ min: 10}).trim().withMessage('Google user id must be valid.')
-        .matches('[0-9a-zA-Z-_]').withMessage('First name has non-alphanumeric characters.'),
     body('email').isLength({ min: 3}).trim().withMessage('Email address must be specified.')
         .isEmail().withMessage('Email must be valid.'),
 
     // sanitize fields
-    sanitizeBody('gid').trim().escape(),
     sanitizeBody('email').trim().escape(),
 
     // process the request
@@ -30,9 +29,8 @@ exports.user_create_post = [
 
         // data from the form is valid
         var user = new User({
-            gid: req.body.gid,
             email: req.body.email,
-            locale: req.body.email,
+            name: req.body.name,
         });
 
         user.save(function(err) {
@@ -47,7 +45,7 @@ exports.user_create_post = [
 exports.user_delete_post = function(req, res, next) {
     async.waterfall([
         function(callback) {
-            User.findOne({ 'gid': req.body.gid }, function(err, user) {
+            User.findOne({ 'email': req.body.email }, function(err, user) {
                 callback(null, user);
             });
         },
@@ -66,8 +64,9 @@ exports.user_delete_post = function(req, res, next) {
 
         // delete all user accounts
         let del_accounts_count = 0;
-        if (results.accounts.length > 0) {
-            for (account in accounts) {
+        console.log(results);
+        if (results.accounts !== null && results.accounts.length > 0) {
+            for (account in results.accounts) {
                 Account.findByIdAndRemove(account.id, function deleteAccount(err) {
                     if (err) { return next(err); }
                     del_accounts_count += 1;
@@ -98,8 +97,7 @@ exports.user_list = function(req, res, next) {
 exports.user_detail = function(req, res, next) {
     async.waterfall([
         function(callback) {
-            console.log(req.body.gid);
-            User.findOne({ 'gid': req.body.gid }, function(err, user) {
+            User.findOne({ 'email': req.body.email }, function(err, user) {
                 callback(null, user);
             });
         },
@@ -108,7 +106,6 @@ exports.user_detail = function(req, res, next) {
                 res.send({ title: 'User Detail', error: "User could not be found"});
                 return;
             }
-            console.log(user);
             Account.find({ 'user': user.id }, function(err, accounts) {
                 callback(null, { user: user,  accounts: accounts });
             });

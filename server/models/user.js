@@ -5,16 +5,15 @@ var Schema = mongoose.Schema;
 
 var UserSchema = new Schema(
     {
-        gid: {type: String, required: true, max: 200},
         email: {type: String, required: true, max: 100},
-        locale: {type:String, max: 10},
+        name: {type: String, max: 60},
         status: {type: String, required: true, enum: ['ACTIVE', 'DELETED', 'PAUSED'], default: 'ACTIVE'},
         join_date: {type: Date, default: Date.now},
     }
 );
 
 UserSchema.virtual('user').get(function() {
-    return gid + " (" + this.email + ") joined " + moment(this.join_date).format() + " " + this.locale + " status " + this.status;
+    return this.email + " joined " + moment(this.join_date).format() + " " + this.locale + " status " + this.status;
 });
 
 UserSchema.virtual('url').get(function () {

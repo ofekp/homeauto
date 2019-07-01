@@ -44,11 +44,21 @@ const CLIENT_BUILD_PATH = path.join(__dirname, '../client/build');
 // api routes
 app.use("/.well-known/acme-challenge", express.static("/webroots/" + process.env.DOMAIN + "/.well-known/acme-challenge"));
 
-//app.use(express.static(__dirname + '/static', { dotfiles: 'allow' } ))
+app.use(express.static(__dirname + '/static', { dotfiles: 'allow' } ))
+// app.use((req, res, next) => {
+//   console.log("revoke token");
+//   res.status(401);
+//   res.set('Content-Type', 'application/json;charset=UTF-8');
+//   res.send({"error":"user_not_found"});
+// });
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/catalog', catalogRouter);
 app.use('/home-auto', homeAutoRouter);
+
+// home assitant API
+app.use(bodyParser.json());
+
 // all remaining requests return the React app, so it can handle routing.
 app.get('*', function(req, res) {
   res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
@@ -70,8 +80,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-// home assitant API
-app.use(bodyParser.json());
 
 module.exports = app;
