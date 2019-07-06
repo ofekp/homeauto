@@ -18,33 +18,32 @@ exports.account_create_post = [
     sanitizeBody('device_name').trim(),
 
     // process request
-    (req, res, next) => {
+    async (req, res, next) => {
         const errors = validationResult(req);
 
-        Account.findOne({ 'user': req.body.user, 'device_name': req.body.device_name }, function(err, account) {
-            if (account != undefined) {
-                res.send({ title: 'Create Account', errors: "Account with device name [" + req.body.device_name + "] already exists." });
-                return;
-            }
+        if (!errors.isEmpty()) {
+            return res.send({ title: 'Create Account', errors: errors.array() })
+        }
 
-            var account = new Account({
-                user: req.body.user,
-                user_name: req.body.user_name,
-                password: req.body.password,
-                device_name: req.body.device_name,
-            });
-    
-            if (!errors.isEmpty()) {
-                res.send({ title: 'Create Account', errors: errors.array() })
-                return;
-            }
-    
-            account.save(function(err) {
-                if (err) { return next(err); }
-                // success
-                res.send({ title: 'Create Account', url: account.url });
-            });
-        });
+        updatedAccount = {
+            user: req.body.user,
+            user_name: req.body.user_name,
+            password: req.body.password,
+            additional_data: JSON.stringify(req.body.additional_data),
+            device_name: req.body.device_name
+        }
+        
+        const account = await Account.updateOne(
+            {'user': req.body.user, 'device_name': req.body.device_name },
+            updatedAccount,
+            { upsert : true }
+        );
+
+        if (!account) {
+            return res.send({ title: 'Create Account', errors: "error while creating a device" });
+        }
+
+        return res.send({ title: 'Create Account', account: account });
     }
 ];
 

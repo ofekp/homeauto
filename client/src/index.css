@@ -1,11 +1,13 @@
 body {
-  background-color: #575757;
+  background-color: #ffffff;
   padding: 0px 0px;
   margin: 0;
 }
-h1, h2, p, ul, li {
+h1, h2, h3, h4, p, ul, li {
   font-family: sans-serif;
+  font-weight: 500;
 }
+
 ul.header li {
   display: inline;
   list-style-type: none;
@@ -23,10 +25,13 @@ ul.header li a {
   padding: 20px;
   display: inline-block;
 }
+
 .content {
   background-color: #FFF;
   padding: 20px;
   box-shadow: inset 0px 4px 9px 0px #afafaf;
+  padding-bottom: 48px;
+  margin-bottom: 48px;
 }
 .content h2 {
   padding: 0;
@@ -35,12 +40,59 @@ ul.header li a {
 .content li {
   margin-bottom: 10px;
 }
+.content-text {
+  font-family: sans-serif;
+  font-size: 15px; 
+  padding-bottom: 15px;
+}
+.content-center {
+  text-align: center;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+.content-small {
+  color: #adadad;
+  font-size: 11px; 
+}
+
+.login {
+  background-color: #efefef;
+  padding: 20px;
+  padding-top: 48px;
+  padding-bottom: 48px;
+  margin-bottom: 48px;
+  color: #4d4d4d;
+}
+.login-content {
+  width: 400px;
+  margin: 0 auto;
+}
+
+.device-login {
+  width: 400px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  padding: 20px;
+  padding-top: 48px;
+  padding-bottom: 48px;
+  margin-bottom: 48px;
+  color: #4d4d4d;
+}
+
+.footer {
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 12px; 
+}
 
 .active {
   background-color: #0099FF;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.text-center {
+  text-align: center;
 }

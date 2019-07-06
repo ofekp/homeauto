@@ -92,7 +92,7 @@ services:
       - CERT_PATH
       - CA_PATH
       - DOMAIN
-      - ACTION_ON_GOOLE_CLIENT_ID
+      - ACTION_ON_GOOGLE_CLIENT_ID
     depends_on:
       - mongoClientTemp
     links:
@@ -112,6 +112,7 @@ services:
       - KEY_PATH
       - CERT_PATH
       - CA_PATH
+      - WEBAPP_CLIENT_ID
     volumes:
       - ./client/:/usr/src/app/
       - /usr/src/app/node_modules

@@ -5,10 +5,14 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import AppBar from 'material-ui/AppBar';
 import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField';
+import { getUserDetails } from './helpers/db';
+import { Redirect } from 'react-router-dom';
 
 const style = {
   margin: 15,
 };
+
+// continue with https://material-ui.com/components/app-bar/
 
 class RiscoLogin extends Component {
   constructor(props) {
@@ -16,46 +20,62 @@ class RiscoLogin extends Component {
     this.state = {
       username: '',
       password: '',
-      pin: ''
+      pin: '',
+      userDetails: null
     }
   }
 
-  handleClick(event) {
+  componentWillMount() {
+    const userDetails = localStorage.getItem('userDetails');
+    this.setState(() => ({
+      userDetails: userDetails,
+    }));
+  }
+
+  handleClick = async (event) => {
     var apiBaseUrl = "/home-auto";
-    var self = this;
+    var userDetails = JSON.parse(this.state.userDetails);
+
     var payload = {
-      "user": this.state.user,
+      "user": userDetails.user._id,
       "user_name": this.state.username,
       "password": this.state.password,
       "additional_data": {"pin": this.state.pin},
       "account_type": "RISCO",
       "device_name": "risco"
     }
-    axios.post(apiBaseUrl + '/account/create', payload).then(function (response) {
+
+    await axios.post(apiBaseUrl + '/account/create', payload).then(function (response) {
       console.log(response);
-      if (response.data.code == 200) {
+      if (response.status == 200) {
         console.log("Login successfull");
-        var uploadScreen=[];
-        uploadScreen.push(<UploadScreen appContext={self.props.appContext}/>)
-        self.props.appContext.setState({loginPage:[],uploadScreen:uploadScreen})
-      }
-      else if (response.data.code == 204) {
-        console.log("Username password do not match");
-        alert("username password do not match")
-      }
-      else {
-        console.log("Username does not exists");
-        alert("Username does not exist");
+        this.setState({loginPage:[],uploadScreen:uploadScreen})
+      } else {
+        console.log("Error while creating the device");
+        alert("Error while creating the device");
       }
     })
     .catch(function (error) {
       console.log(error);
     });
+
+    userDetails = await getUserDetails(userDetails.user.email);
+    const userDetailsStr = JSON.stringify(userDetails);
+    localStorage.setItem('userDetails', userDetailsStr);
+    this.setState(() => ({
+      userDetails: userDetailsStr
+    }))
   }
 
   render() {
+    console.log(this.state.userDetails)
+    console.log(!this.state.userDetails)
+    if (!this.state.userDetails) {
+      return <Redirect to='/' />
+    }
+
     return (
-      <div>
+      <div className="device-login">
         <MuiThemeProvider>
           <div>
             <AppBar
@@ -83,7 +103,7 @@ class RiscoLogin extends Component {
             <br/>
             <RaisedButton label="Submit" primary={true} style={style} onClick={(event) => this.handleClick(event)}/>
          </div>
-         </MuiThemeProvider>
+        </MuiThemeProvider>
       </div>
     );
   }

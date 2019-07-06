@@ -36,7 +36,7 @@ exports.user_create_post = [
         user.save(function(err) {
             if (err) { return next(err) }
             // successful
-            res.send({ title: 'Create User', url: user.url });
+            res.send({ title: 'Create User', user: user });
         });
     }
 ];
@@ -103,6 +103,7 @@ exports.user_detail = function(req, res, next) {
         },
         function(user, callback) {
             if (user == undefined) {
+                res.status(404);
                 res.send({ title: 'User Detail', error: "User could not be found"});
                 return;
             }

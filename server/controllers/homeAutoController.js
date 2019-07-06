@@ -6,7 +6,7 @@ const async = require('async');
 const axios = require('axios');
 const querystring = require('querystring');
 
-const actionOnGoogleClientId = process.env.ACTION_ON_GOOLE_CLIENT_ID;
+const actionOnGoogleClientId = process.env.ACTION_ON_GOOGLE_CLIENT_ID;
 
 const {
     dialogflow,

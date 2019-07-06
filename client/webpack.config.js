@@ -24,7 +24,12 @@ module.exports = {
       filename: 'bundle.js'
     },
     plugins: [
-      new webpack.HotModuleReplacementPlugin()
+      new webpack.HotModuleReplacementPlugin(),
+      new webpack.DefinePlugin({
+        'process.env': {
+          WEBAPP_CLIENT_ID: JSON.stringify(process.env.WEBAPP_CLIENT_ID),
+        },
+      }),
     ],
     devServer: {
       compress: true,
