@@ -11,12 +11,56 @@ import RiscoLogin from "./RiscoLogin";
 import { getUserDetails, createUser } from "./helpers/db";
 import { GoogleLogin } from 'react-google-login';
 
+import AppBar from '@material-ui/core/AppBar';
+import Grid from '@material-ui/core/Grid';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import MenuItem from '@material-ui/core/MenuItem';
+import Menu from '@material-ui/core/Menu';
+
+function TabContainer(props) {
+  return (
+    <div>
+      {props.children}
+    </div>
+  );
+}
+
+// const useStyles = makeStyles(theme => ({
+//   root: {
+//     flexGrow: 1,
+//     backgroundColor: theme.palette.background.paper,
+//   },
+// }));
+
+// continue with:
+// https://material-ui.com/components/app-bar/
+// https://material-ui.com/components/tabs/
+// App should be a function so we can use the pallete like in RiscoLogin
+// Login should have sign in and sign out according to the current state
+// risco login should be boxed (+ remove artifact of shadow)
+
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      userDetails: null
+      content: "home",
+      userDetails: null,
+      anchorEl: null
     }
+  }
+
+  handleMenu = (event) => {
+    console.log(this.state)
+    this.setState({anchorEl: event.currentTarget});
+  }
+
+  handleClose = () => {
+    this.setState({anchorEl: null});
   }
 
   responseGoogle = async (response) => {
@@ -51,10 +95,10 @@ class App extends Component {
               Home-Auto
             </h1>
             <div className="login-content">
-              <h2>
+              <h2 className="text-center">
                 Login
               </h2>
-              <div className="content-text">
+              <div className="content-text text-center">
                 Currently the only available way to sign in is by signing in with you Google account.
               </div>
               <div className="content-center">
@@ -78,24 +122,66 @@ class App extends Component {
       );
     }
 
+    const open = Boolean(this.state.anchorEl);
+
     return (
-      <HashRouter>
-        <div>
-          <ul className="header">
-            <li><NavLink exact to="/">Home-Auto</NavLink></li>
-            <li><NavLink to="/devices">My Devices</NavLink></li>
-            <li><NavLink to="/risco_login">Add Risco Device</NavLink></li>
-          </ul>
-          <div className="content">
-            <Route exact path="/" component={Home}/>
-            <Route path="/devices" component={Devices}/>
-            <Route path="/risco_login" component={RiscoLogin}/>
-          </div>
-          <div className="footer">
-            Home-Auto by Ofek Pearl
-          </div>
+      <div>
+        <AppBar position="static">
+          <Grid
+            justify="space-between"
+            container 
+            spacing={20}
+          >
+            <Grid item>
+              <Tabs value={this.state.content} onChange={(event, newValue) => {console.log(this.state); this.setState({content: newValue})}}>
+                <Tab value="home" label="Home" wrapped />
+                <Tab value="devices" label="Devices" />
+                <Tab value="risco_login" label="Risco Login" />
+              </Tabs>
+            </Grid>
+
+            <Grid item>
+              {userDetails && (
+              <div style={{ flex: 1 }}>
+                <IconButton
+                  aria-label="Account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  onClick={this.handleMenu}
+                  color="inherit"
+                >
+                  <AccountCircle />
+                </IconButton>
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={this.state.anchorEl}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={open}
+                  onClose={this.handleClose}
+                >
+                  <MenuItem onClick={this.handleClose}>Profile</MenuItem>
+                  <MenuItem onClick={this.handleClose}>My account</MenuItem>
+                </Menu>
+              </div>
+            )}
+            </Grid>
+          </Grid>
+        </AppBar>
+        {this.state.content === 'home' && <TabContainer><Home /></TabContainer>}
+        {this.state.content === 'devices' && <TabContainer><Devices /></TabContainer>}
+        {this.state.content === 'risco_login' && <TabContainer><RiscoLogin /></TabContainer>}
+        <div className="footer">
+          Home-Auto by Ofek Pearl
         </div>
-      </HashRouter>
+      </div>
     );
   }
 }

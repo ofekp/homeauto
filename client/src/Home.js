@@ -26,12 +26,25 @@ class Home extends Component {
   //   return body;
   // }
 
+  componentWillMount() {
+    const userDetails = localStorage.getItem('userDetails');
+    this.setState(() => ({
+      userDetails: userDetails,
+    }));
+  }
+
   render() {
+    console.log(this.state.userDetails)
     if (!this.state.userDetails) {
-      return <Redirect to='/risco_login' />
-    } else if (userDetails.accounts.length > 0) {
-      return <Redirect to='/devices' />
-    }
+      return <div>You'll first need to sign in before using this app.</div>
+    } else {
+      const userDetailsObj = JSON.parse(this.state.userDetails);
+      if (!userDetailsObj.accounts || userDetailsObj.accounts.length == 0) {
+        return <div>Hey {userDetailsObj.user.name}! you'll have to set up a device before you can use this app.</div>
+      } else {
+        return <div>Hey {userDetailsObj.user.name}!</div>
+      }
+    } 
   }
 }
 
