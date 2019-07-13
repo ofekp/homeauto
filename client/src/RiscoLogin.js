@@ -1,28 +1,16 @@
 import React, { Component, useState } from 'react';
 import { getUserDetails } from './helpers/db';
+import { appTheme } from './AppTheme';
 import { Redirect } from 'react-router-dom';
 import axios from 'axios';
+import LoginMessage from './LoginMessage';
 
 import TextField from '@material-ui/core/TextField';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import blue from '@material-ui/core/colors/blue';
-import pink from '@material-ui/core/colors/pink';
-import { MuiThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles'; // v1.x
-import { ThemeProvider } from '@material-ui/styles';
-import purple from '@material-ui/core/colors/purple';
+import { MuiThemeProvider, makeStyles } from '@material-ui/core/styles'; // v1.x
 import Button from '@material-ui/core/Button'
-import { Theme } from '@material-ui/core/styles/createMuiTheme';
-
-const theme = createMuiTheme({
-  palette: {
-    primary: blue,
-    secondary: {
-      main: '#E33E7F'
-    }
-  },
-});
 
 const useStyles = makeStyles({
   container: {
@@ -90,14 +78,15 @@ function RiscoForm(props) {
     });
 
     const userDetails = await getUserDetails(userDetailsObj.user.email);
+    console.log(userDetails)
     const userDetailsStr = JSON.stringify(userDetails);
     localStorage.setItem('userDetails', userDetailsStr);
     props.updateUserDetails(userDetailsStr);
   }
 
   return (
-    <div className="device-login">
-      <MuiThemeProvider theme={theme}>
+    <div className="device-container">
+      <MuiThemeProvider theme={appTheme}>
         <div>
           <AppBar position="static" color="primary">
             <Toolbar>
@@ -157,6 +146,12 @@ class RiscoLogin extends Component {
     }
   }
 
+  updateUserDetails = (userDetails) => {
+    this.setState(() => ({
+      userDetails: userDetails,
+    }));
+  }
+
   componentWillMount() {
     const userDetails = localStorage.getItem('userDetails');
     this.setState(() => ({
@@ -164,15 +159,9 @@ class RiscoLogin extends Component {
     }));
   }
 
-  updateUserDetails = (userDetails) => {
-    this.setState({
-      userDetails: userDetails
-    })
-  }
-
   render() {
     if (!this.state.userDetails) {
-      return <Redirect to='/' />
+      return <LoginMessage>You'll first need to sign in before using this app. Use the the button on the upper right corner of this app.</LoginMessage>
     }
 
     return <RiscoForm userDetails={this.state.userDetails} updateUserDetails={this.updateUserDetails} />;

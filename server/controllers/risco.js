@@ -93,7 +93,7 @@ exports.login = async(account) => {
     return null;
 }
 
-exports.action = async(conv, account, riscoAction) => {
+exports.action = async (conv, account, riscoAction) => {
 
     switch (riscoAction) {
         case this.RiscoAction.ARMED:
@@ -111,14 +111,16 @@ exports.action = async(conv, account, riscoAction) => {
 
     // try to see if the current conversation already has a cookie
     var cookie_str = null;
-    if (conv.data.risco_cookie !== undefined) {
+    if (conv && conv.data && conv.data.risco_cookie) {
         cookie_str = conv.data.risco_cookie;
     } else {
         cookie_str = await this.login(account);
         if (cookie_str == null) {
             return null;
         }
-        conv.data.risco_cookie = cookie_str;
+        if (conv) {
+            conv.data.risco_cookie = cookie_str;
+        }
     }
 
     body_str = "type=0%3A" + riscoAction + "&passcode=------&bypassZoneId=-1";
@@ -133,6 +135,49 @@ exports.action = async(conv, account, riscoAction) => {
     }
 
     var response = await axios.post('https://www.riscocloud.com/ELAS/WebUI/Security/ArmDisarm', body_str, {headers: headers})
+    var body = await response["data"];
+    if (response.status !== 200) return response.status;
+
+    armIcon = body.detectors.parts[0].armIcon;
+
+    if (armIcon.indexOf("ico-partial.png") !== -1) {
+        return this.RiscoAction.PARTIALLY_ARMED;
+    } else if (armIcon.indexOf("ico-armed.png") !== -1) {
+        return this.RiscoAction.ARMED;
+    } else if (armIcon.indexOf("ico-disarmed.png") !== -1) {
+        return this.RiscoAction.DISARMED;
+    } else {
+        return null;
+    }
+}
+
+exports.getState = async (conv, account) => {
+    // try to see if the current conversation already has a cookie
+    var cookie_str = null;
+    if (conv && conv.data && conv.data.risco_cookie) {
+        cookie_str = conv.data.risco_cookie;
+    } else {
+        cookie_str = await this.login(account);
+        if (cookie_str == null) {
+            return null;
+        }
+        if (conv) {
+            conv.data.risco_cookie = cookie_str;
+        }
+    }
+
+    body_str = "";
+
+    var headers = {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Origin': 'https://www.riscocloud.com',
+        'Host': 'www.riscocloud.com',
+        'Referer': 'https://www.riscocloud.com/ELAS/WebUI/MainPage/MainPage',
+        'Accept': '*/*',
+        'Cookie': cookie_str,
+    }
+
+    var response = await axios.post('https://www.riscocloud.com/ELAS/WebUI/Detectors/Get', body_str, {headers: headers})
     var body = await response["data"];
     if (response.status !== 200) return response.status;
 

@@ -21,3 +21,12 @@ export const createUser = async (email, name) => {
     const body = await response["data"];
     return body;
 }
+
+export const getRiscoState = async (email, device_name) => {
+    const response = await axios.post('home-auto/device/getState', { "email": email, "device_name": device_name }, {});
+    if (response.status !== 200) {
+        return null;
+    }
+    const body = await response["data"];
+    return body;
+}

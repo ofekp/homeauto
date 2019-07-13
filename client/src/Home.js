@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { Redirect } from 'react-router-dom';
-import { getUserDetails } from './helpers/db';
+import { getUserDetails, loginMessage } from './helpers/db';
+import LoginMessage from './LoginMessage'
 
 class Home extends Component {
   constructor(props) {
@@ -34,17 +35,16 @@ class Home extends Component {
   }
 
   render() {
-    console.log(this.state.userDetails)
     if (!this.state.userDetails) {
-      return <div>You'll first need to sign in before using this app.</div>
+      return <LoginMessage>You'll first need to sign in before using this app. Use the the button on the upper right corner of this app.</LoginMessage>;
     } else {
       const userDetailsObj = JSON.parse(this.state.userDetails);
       if (!userDetailsObj.accounts || userDetailsObj.accounts.length == 0) {
-        return <div>Hey {userDetailsObj.user.name}! you'll have to set up a device before you can use this app.</div>
+        return <LoginMessage title="Device Setup Required">Hey {userDetailsObj.user.name}! You have not yet set up any device. Please set up a Risco device in Risco Login tab.</LoginMessage>
       } else {
-        return <div>Hey {userDetailsObj.user.name}!</div>
+        return <LoginMessage title="You're logged in &#x2714;">{userDetailsObj.user.name ? "Hey " + userDetailsObj.user.name + "!" : "Hey there!"}  Welcome to Home-Auto.</LoginMessage>
       }
-    } 
+    }
   }
 }
 

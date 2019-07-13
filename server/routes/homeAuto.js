@@ -42,4 +42,10 @@ router.get('/accounts', account_controller.account_list);
 // POST request to delete Account.
 router.post('/account/delete', account_controller.account_delete_post);
 
+// POST get the device current state
+router.post('/device/getState', account_controller.account_get_state);
+
+// POST set the device state
+router.post('/device/setState', account_controller.account_set_state);
+
 module.exports = router;

@@ -4,8 +4,9 @@ const async = require('async');
 const jwt_decode = require('jwt-decode');
 const TokenGenerator = require('uuid-token-generator');
 
-const {body, validationResult} = require('express-validator/check');
-const {sanitizeBody} = require('express-validator/filter');  
+const {body, validationResult, sanitizeBody} = require('express-validator');
+//const {body, validationResult} = require('express-validator/check');
+//const {sanitizeBody} = require('express-validator/filter');  
 
 // Handle user create on POST.
 exports.user_create_post = [

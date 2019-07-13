@@ -1,9 +1,10 @@
 const User = require('../models/user');
 const Account = require('../models/account');
 const async = require('async');
+const risco = require('./risco');
 
-const {body, validationResult} = require('express-validator/check');
-const {sanitizeBody} = require('express-validator/filter');
+const {body, validationResult, sanitizeBody} = require('express-validator');
+//const {sanitizeBody} = require('express-validator/filter');
 
 // Handle Account create on POST.
 exports.account_create_post = [
@@ -63,5 +64,23 @@ exports.account_delete_post = function(req, res, next) {
     Account.findByIdAndRemove(req.body.id, function(err) {
         if (err) { return next(err); }
         res.send({ title: 'Delete Account', account: req.body.id });
+    });
+};
+
+// get the current state of the device
+exports.account_get_state = async (req, res, next) => {
+    Account.findById(req.body.device_id, async function(err, account) {
+        if (err) { return next(err); }
+        const riscoState = await risco.getState(null, account);
+        res.send({ title: 'Get Device State', state: riscoState });
+    });
+};
+
+// set the state of the device
+exports.account_set_state = async (req, res, next) => {
+    Account.findById(req.body.device_id, async function(err, account) {
+        if (err) { return next(err); }
+        const riscoState = await risco.action(null, account, req.body.state);
+        res.send({ title: 'Set Device State', state: riscoState });
     });
 };
