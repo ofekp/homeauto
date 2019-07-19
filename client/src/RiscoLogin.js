@@ -51,7 +51,7 @@ function RiscoForm(props) {
   };
 
   const handleClick = async (event) => {
-    const apiBaseUrl = "/home-auto";
+    const apiBaseUrl = "/home-keeper";
     const userDetailsObj = JSON.parse(props.userDetails);
 
     const payload = {

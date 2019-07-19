@@ -5,7 +5,7 @@ axios.defaults.validateStatus = function () {
 };
 
 export const getUserDetails = async (email) => {
-    const response = await axios.post('home-auto/user/detail', { "email": email }, {});
+    const response = await axios.post('home-keeper/user/detail', { "email": email }, {});
     if (response.status !== 200) {
         return null;
     }
@@ -14,7 +14,7 @@ export const getUserDetails = async (email) => {
 }
 
 export const createUser = async (email, name) => {
-    const response = await axios.post('home-auto/user/create', { "email": email, "name": name }, {});
+    const response = await axios.post('home-keeper/user/create', { "email": email, "name": name }, {});
     if (response.status !== 200) {
         return null;
     }
@@ -23,7 +23,7 @@ export const createUser = async (email, name) => {
 }
 
 export const getRiscoState = async (email, device_name) => {
-    const response = await axios.post('home-auto/device/getState', { "email": email, "device_name": device_name }, {});
+    const response = await axios.post('home-keeper/device/getState', { "email": email, "device_name": device_name }, {});
     if (response.status !== 200) {
         return null;
     }

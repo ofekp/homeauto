@@ -77,7 +77,7 @@ function Login(props) {
     <div>
       <div className="login">
         <h1 className="text-center">
-          Home-Auto
+          Home-Keeper
         </h1>
         <div className="login-content">
           <h2 className="text-center">
@@ -129,7 +129,7 @@ class App extends Component {
   }
 
   handleGithub = () => {
-    location.href = "https://www.github.com/ofekp/homeauto";
+    location.href = "https://www.github.com/ofekp/homekeeper";
   }
 
   setUserDetails = (userDetails) => {
@@ -217,7 +217,7 @@ class App extends Component {
         {this.state.content === 'devices' && <TabContainer><Devices /></TabContainer>}
         {this.state.content === 'risco_login' && <TabContainer><RiscoLogin /></TabContainer>}
         <div className="footer">
-          Home-Auto by Ofek Pearl
+          Home-Keeper by Ofek Pearl
         </div>
       </div>
     );

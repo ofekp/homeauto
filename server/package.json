@@ -1,5 +1,5 @@
 {
-  "name": "home-sensei",
+  "name": "home-keeper",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,7 @@
     "devallstart": "concurrently --kill-others-on-fail \"npm start devclient\" \"npm start devserver\""
   },
   "dependencies": {
-    "actions-on-google": "^2.8.0",
+    "actions-on-google": "^2.9.1",
     "axios": "^0.19.0",
     "base-64": "^0.1.0",
     "cookie-parser": "^1.4.4",
@@ -20,7 +20,7 @@
     "http-errors": "^1.7.3",
     "jwt-decode": "^2.2.0",
     "moment": "^2.24.0",
-    "mongoose": "^5.6.3",
+    "mongoose": "^5.6.5",
     "morgan": "~1.9.0",
     "pug": "^2.0.4",
     "querystring": "^0.2.0",

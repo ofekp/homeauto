@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 // Require controller modules.
-var home_auto_controller = require('../controllers/homeKeeperController');
+var home_keeper_controller = require('../controllers/homeKeeperController');
 var user_controller = require('../controllers/userController');
 var account_controller = require('../controllers/accountController');
 
@@ -11,7 +11,7 @@ var account_controller = require('../controllers/accountController');
 // ================
 
 /// HOME-KEEPER Action-on-Google ROUTES ///
-router.post('/', home_auto_controller.index);
+router.post('/', home_keeper_controller.index);
 
 // ****
 // User

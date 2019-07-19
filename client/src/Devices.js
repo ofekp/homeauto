@@ -57,7 +57,7 @@ function RiscoDevice(props) {
   const [alarmState, setAlarmState] = useState(null);
 
   const getRiscoState = async (device_id) => {
-    const apiBaseUrl = "/home-auto";
+    const apiBaseUrl = "/home-keeper";
 
     const payload = {
       "device_id": device_id,
@@ -77,7 +77,7 @@ function RiscoDevice(props) {
   }
 
   const setRiscoState = async (device_id, state) => {
-    const apiBaseUrl = "/home-auto";
+    const apiBaseUrl = "/home-keeper";
 
     const payload = {
       "device_id": device_id,

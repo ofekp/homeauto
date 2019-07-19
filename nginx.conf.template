@@ -14,14 +14,14 @@ http {
     ssl_certificate_key ${KEY_PATH};
     include /etc/nginx/options-ssl-nginx.conf;
 
-    location /home-auto {
+    location /home-keeper {
         proxy_pass http://server:80;
-        rewrite ^(/home-auto.*)$ $1 break;
+        rewrite ^(/home-keeper.*)$ $1 break;
     }
 
     location /googlec923142279c08706.html {
         proxy_pass http://server:80;
-        rewrite ^(/home-auto/google-domain-owner-verification.*)$ $1 break;
+        rewrite ^(/home-keeper/google-domain-owner-verification.*)$ $1 break;
     }
 
     location / {

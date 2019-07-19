@@ -2,9 +2,9 @@ var express = require('express');
 var router = express.Router();
 
 // Require controller modules.
-var home_auto_controller = require('../controllers/homeAutoController');
+var home_keeper_controller = require('../controllers/homeKeeperController');
 
-/// HOME-SENSEI ROUTES ///
-router.post('/home-auto', home_auto_controller.index);
+/// HOME-KEEPER ROUTES ///
+router.post('/home-keeper', home_keeper_controller.index);
 
 module.exports = router;

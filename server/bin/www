@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var app = require('../app');
-var debug = require('debug')('home-sensei:server');
+var debug = require('debug')('home-keeper:server');
 var http = require('http');
 const https = require('https');
 const fs = require('fs');

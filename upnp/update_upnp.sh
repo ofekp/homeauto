@@ -9,6 +9,6 @@ echo "Detected gateway is [$gateway]"
 
 # port - e.g. 80
 # protocol - TCP or UDP
-upnpc -e 'home-sensei' -r $port $protocol
+upnpc -e 'home-keeper' -r $port $protocol
 
 echo "Done updating UPnP entry with port [$port] and protocol [$protocol]"   

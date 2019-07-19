@@ -9,7 +9,7 @@ var bodyParser = require('body-parser')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var catalogRouter = require('./routes/catalog');
-var homeAutoRouter = require('./routes/homeAuto');
+var homeKeeperRouter = require('./routes/homeKeeper');
 
 var app = express();
 
@@ -54,7 +54,7 @@ app.use(express.static(__dirname + '/static', { dotfiles: 'allow' } ))
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/catalog', catalogRouter);
-app.use('/home-auto', homeAutoRouter);
+app.use('/home-keeper', homeKeeperRouter);
 
 // home assitant API
 app.use(bodyParser.json());
