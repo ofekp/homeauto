@@ -11,7 +11,13 @@ import { MuiThemeProvider, makeStyles } from '@material-ui/core/styles'; // v1.x
 import Button from '@material-ui/core/Button'
 import Box from '@material-ui/core/Box';
 import LoginMessage from './LoginMessage'
+import IconButton from '@material-ui/core/IconButton';
+import MenuItem from '@material-ui/core/MenuItem';
+import Menu from '@material-ui/core/Menu';
+import MenuIcon from '@material-ui/icons/Menu';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 //import { chnageState } from './home/db';
+import { getUserDetails } from "./helpers/db";
 
 const useStyles = makeStyles(theme => ({
   progress: {
@@ -23,6 +29,7 @@ const RiscoAction = Object.freeze({
   ARMED: 1,
   PARTIALLY_ARMED: 2,
   DISARMED: 3,
+  ERROR: 4
 });
 
 
@@ -55,6 +62,42 @@ function RiscoDevice(props) {
   const classes = useStyles();
 
   const [alarmState, setAlarmState] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const open = Boolean(anchorEl);
+
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  }
+
+  const handleDeleteDevice = async () => {
+    // TODO - delete the device
+    setAnchorEl(null);
+    const apiBaseUrl = "/home-keeper";
+
+    const payload = {
+      "id": props.device_id,
+    }
+
+    const response = await axios.post(apiBaseUrl + '/account/delete', payload);
+    if (response.status == 200) {
+      // get the updated state of the userDetails
+      var userDetails = await getUserDetails(props.email);
+      if (!userDetails) {
+        // create a new account for the user
+        console.log("ERROR: When deleting a user defined device.");
+        return;
+      }
+      const userDetailsStr = JSON.stringify(userDetails);
+      props.updateUserDetails(userDetailsStr);
+    } else {
+      return null;
+    }
+  }
 
   const getRiscoState = async (device_id) => {
     const apiBaseUrl = "/home-keeper";
@@ -68,7 +111,7 @@ function RiscoDevice(props) {
         const state = response.data.state;
         setAlarmState(state);
       } else {
-        return null;
+        setAlarmState(RiscoAction.ERROR);
       }
     })
     .catch(function (error) {
@@ -124,24 +167,55 @@ function RiscoDevice(props) {
         <div>
           <AppBar position="static" color="primary">
             <Toolbar>
+              <IconButton
+                aria-label="Device Options"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleMenu}
+                color="inherit"
+                edge="start">
+                <MoreVertIcon />
+              </IconButton>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'left',
+                }}
+                open={open}
+                onClose={handleClose}
+              >
+                <MenuItem onClick={handleDeleteDevice}>Delete</MenuItem>
+              </Menu>
               <Typography variant="h6" color="inherit">
                 {props.name}
               </Typography>
             </Toolbar>
           </AppBar>
-            {alarmState ? 
-            <div className="device-slider-container">
-            <Slider
-              defaultValue={marks.find(mark => mark.state === alarmState).value}
-              valueLabelFormat={valueLabelFormat}
-              getAriaValueText={valuetext}
-              aria-labelledby="discrete-slider-restrict"
-              step={null}
-              valueLabelDisplay="auto"
-              marks={marks}
-              onChangeCommitted={handleSliderChange}
-            />
-            </div>
+            {alarmState
+            ?
+              alarmState === RiscoAction.ERROR
+              ?
+              <p>Perhaps your device was set up incorrectly?</p>
+              :
+              <div className="device-slider-container">
+              <Slider
+                defaultValue={marks.find(mark => mark.state === alarmState).value}
+                valueLabelFormat={valueLabelFormat}
+                getAriaValueText={valuetext}
+                aria-labelledby="discrete-slider-restrict"
+                step={null}
+                valueLabelDisplay="auto"
+                marks={marks}
+                onChangeCommitted={handleSliderChange}
+              />
+              </div>
             :
             <div className="device-slider-loading">
             <CircularProgress className={classes.progress} /> 
@@ -161,17 +235,28 @@ class Devices extends Component {
   }
 
   componentWillMount() {
-    const userDetails = localStorage.getItem('userDetails');
+    const userDetailsStr = localStorage.getItem('userDetails');
     this.setState(() => ({
-      userDetails: userDetails,
+      userDetails: userDetailsStr,
+    }));
+  }
+
+  updateUserDetails = (userDetailsStr) => {
+    localStorage.setItem('userDetails', userDetailsStr);
+    this.setState(() => ({
+      userDetails: userDetailsStr,
     }));
   }
 
   renderDevice(device) {
+    const userDetailsObj = JSON.parse(this.state.userDetails);
+    const email = userDetailsObj.user.email;
     return <RiscoDevice 
       key={device.device_name}
       name={device.device_name}
+      email={email}
       device_id={device._id}
+      updateUserDetails={this.updateUserDetails}
     />;
   }
 
@@ -182,7 +267,7 @@ class Devices extends Component {
     } else {
       userDetailsObj = JSON.parse(this.state.userDetails);
       if (!userDetailsObj.accounts || userDetailsObj.accounts.length == 0) {
-        return <LoginMessage>Hey {userDetailsObj.user.name}! You have not yet set up any device. Please set up a Risco device in Risco Login tab.</LoginMessage>
+        return <LoginMessage title="Device Setup Required">Hey {userDetailsObj.user.name}! You have not yet set up any device. Please set up a Risco device in Risco Login tab.</LoginMessage>
       }
     }
 
@@ -199,7 +284,6 @@ class Devices extends Component {
       <div>
         {
           accounts.map(device => {
-            console.log(device)
             return this.renderDevice(device);
           })
         }

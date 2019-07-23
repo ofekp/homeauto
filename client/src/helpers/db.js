@@ -22,9 +22,20 @@ export const createUser = async (email, name) => {
     return body;
 }
 
+export const deleteUser = async (email) => {
+    const response = await axios.post('home-keeper/user/delete', { "email": email }, {});
+    if (response.status !== 200) {
+        return null;
+    }
+    const body = await response["data"];
+    return body;
+}
+
 export const getRiscoState = async (email, device_name) => {
     const response = await axios.post('home-keeper/device/getState', { "email": email, "device_name": device_name }, {});
+    console.log("status: " + response.status);
     if (response.status !== 200) {
+        console.log("here1")
         return null;
     }
     const body = await response["data"];

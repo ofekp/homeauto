@@ -81,7 +81,10 @@ exports.login = async(account) => {
         var response3 = await axios.post('https://www.riscocloud.com/ELAS/WebUI/SiteLogin', body_str, {headers: headers3});
         var body3 = await response3["data"];
         if (response3.status !== 200) {
-            //console.log(body3.message);
+            return null;
+        }
+        // in case the pin number is wrong
+        if (body3.indexOf("registration-form") >= 0) {
             return null;
         }
 
@@ -158,7 +161,7 @@ exports.getState = async (conv, account) => {
         cookie_str = conv.data.risco_cookie;
     } else {
         cookie_str = await this.login(account);
-        if (cookie_str == null) {
+        if (!cookie_str) {
             return null;
         }
         if (conv) {

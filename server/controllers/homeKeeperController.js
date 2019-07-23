@@ -72,21 +72,21 @@ risco_operation_carousel = new Carousel({
     }
 })
 
-// riscoAppCard = new BasicCard({
-//     text: `To use this app you will need to add a Risco device. Follow the link below to create a device.`, // Note the two spaces before '\n' required for
-//                                  // a line break to be rendered in the card.
-//     subtitle: 'This is a subtitle',
-//     title: 'Title: this is a title',
-//     buttons: new Button({
-//       title: 'This is a button',
-//       url: 'https://' + process.env.DOMAIN + ':3000/',
-//     }),
-//     image: new Image({
-//       url: 'https://example.com/image.png',
-//       alt: 'Image alternate text',
-//     }),
-//     display: 'CROPPED',
-//   });
+homeKeeperAppCard = new BasicCard({
+    // Note the two spaces before '\n' required for a line break to be rendered in the card.
+    text: `To use this app you will need to add a Risco device. Follow the link below to create a device.`, 
+    subtitle: 'Home Keeper',
+    title: 'Home Keeper App',
+    buttons: new Button({
+      title: 'Home Keeper - ',
+      url: 'https://' + process.env.DOMAIN,
+    }),
+    image: new Image({
+      url: 'https://example.com/image.png',
+      alt: 'Image alternate text',
+    }),
+    display: 'CROPPED',
+  });
 
 const createAccount = async(user_id, account_type, user_name, password, additional_data, device_name) => {
 
@@ -168,16 +168,17 @@ app.intent('Get Signin', async (conv, params, signin) => {
         conv.user.storage.id = conv.data.id;
     }
 
-    conv.close(`Thank you for signing in! Please proceed to adding a device at https://ofekp.dynu.net then you will be able to control it from this app.`);
+    conv.ask(homeKeeperAppCard);
+    conv.close(`Thank you for signing in! Please proceed to adding a device at https://ofekp.dynu.net then you will be able to control it from this voice app.`);
 });
 
-app.intent("Default Welcome Intent", async (conv) => {      
+app.intent("Default Welcome Intent", async (conv) => {
     console.log("Default Welcome Intent");
     console.log(conv.user.profile);
 
     const {payload} = conv.user.profile;
     const name = payload ? ` ${payload.given_name}` : 'there';
-    // conv.user.storage.id contains the id of the record for the user in a Firestore DB
+    // conv.user.storage.id contains the id of the record for the user in the DB
     if (conv.user.storage.id) {
         const user = await getUserById(conv.user.id);
         if (!user) {
@@ -187,13 +188,14 @@ app.intent("Default Welcome Intent", async (conv) => {
         // the user was found
         var riscoAccount = getRiscoAccount(conv.user.id)
         if (!riscoAccount) {
-            return conv.ask(`You must add a device first, please visit https://ofekp.dynu.net to add a device.`);
+            conv.ask(homeKeeperAppCard);
+            return conv.close(`You must add a device first, please visit https://ofekp.dynu.net to add a device.`);
         }
 
         return conv.ask(`Hey ${name}, how can I help?`);
     }
 
-    return conv.ask(`You must sign in first. Try saying \"I want to sign in\".`);
+    return conv.close(`You must sign in first. For that you'll need to say \"I want to sign in\".`);
 });
 
 app.intent('what_can_you_do', async(conv, params, signin) => {

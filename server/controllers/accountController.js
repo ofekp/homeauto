@@ -72,6 +72,10 @@ exports.account_get_state = async (req, res, next) => {
     Account.findById(req.body.device_id, async function(err, account) {
         if (err) { return next(err); }
         const riscoState = await risco.getState(null, account);
+        if (!riscoState) {
+            res.status(404);
+            return res.send({ title: 'Get Device State', error: "Error while getting the device state" })
+        }
         res.send({ title: 'Get Device State', state: riscoState });
     });
 };

@@ -67,7 +67,6 @@ function RiscoForm(props) {
       console.log(response);
       if (response.status == 200) {
         console.log("Device created successfully");
-        this.setState({loginPage:[],uploadScreen:uploadScreen})
       } else {
         console.log("Error while creating the device");
         alert("Error while creating the device");

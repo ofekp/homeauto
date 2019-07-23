@@ -9,7 +9,7 @@ import {
 import Home from "./Home";
 import Devices from "./Devices";
 import RiscoLogin from "./RiscoLogin";
-import { getUserDetails, createUser } from "./helpers/db";
+import { getUserDetails, createUser, deleteUser } from "./helpers/db";
 import { appTheme } from './AppTheme';
 import { GoogleLogin } from 'react-google-login';
 import { MuiThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles'; // v1.x
@@ -115,7 +115,6 @@ class App extends Component {
   }
 
   handleMenu = (event) => {
-    console.log(this.state)
     this.setState({anchorEl: event.currentTarget});
   }
 
@@ -125,7 +124,18 @@ class App extends Component {
 
   handleSignout = () => {
     localStorage.clear();
-    this.setState({anchorEl: null});
+    this.setState({anchorEl: null, userDetails: null});
+  }
+
+  handleDeleteUser = async () => {
+    const userDetailsObj = JSON.parse(this.state.userDetails);
+    const body = await deleteUser(userDetailsObj.user.email);
+    if (!body) {
+      console.log("ERROR: User could not be deleted.");
+      return;
+    }
+    localStorage.clear();
+    this.setState({anchorEl: null, userDetails: null});
   }
 
   handleGithub = () => {
@@ -144,8 +154,14 @@ class App extends Component {
     }))
   }
 
-  render() {
+  componentWillMount() {
     const userDetails = localStorage.getItem('userDetails');
+    this.setState(() => ({
+      userDetails: userDetails,
+    }));
+  }
+
+  render() {
     const open = Boolean(this.state.anchorEl);
 
     return (
@@ -166,7 +182,7 @@ class App extends Component {
             </Grid>
 
             <Grid item>
-              {userDetails ?
+              {this.state.userDetails ?
                 (<div style={{ flex: 1 }}>
                 <IconButton
                   aria-label="Account of current user"
@@ -193,6 +209,7 @@ class App extends Component {
                   onClose={this.handleClose}
                 >
                   <MenuItem onClick={this.handleSignout}>Sign out</MenuItem>
+                  <MenuItem onClick={this.handleDeleteUser}>Delete My Account</MenuItem>
                 </Menu>
                 <IconButton 
                   aria-label="Account of current user"
