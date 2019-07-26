@@ -43,6 +43,7 @@ const CLIENT_BUILD_PATH = path.join(__dirname, '../client/build');
 
 // api routes
 app.use("/.well-known/acme-challenge", express.static("/webroots/" + process.env.DOMAIN + "/.well-known/acme-challenge"));
+app.use('/home-keeper/static/images', express.static('public/images'));
 
 app.use(express.static(__dirname + '/static', { dotfiles: 'allow' } ))
 // app.use((req, res, next) => {

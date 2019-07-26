@@ -46,9 +46,16 @@ exports.user_create_post = [
 exports.user_delete_post = function(req, res, next) {
     async.waterfall([
         function(callback) {
-            User.findOne({ 'email': req.body.email }, function(err, user) {
-                callback(null, user);
-            });
+            if (req.body.email) {
+                User.findOne({ 'email': req.body.email }, function(err, user) {
+                    callback(null, user);
+                });
+            } else {
+                console.log("id: " + req.body.id)
+                User.findById(req.body.id, function(err, user) {
+                    callback(null, user);
+                });
+            }
         },
         function(user, callback) {
             if (user == undefined) {
@@ -103,7 +110,7 @@ exports.user_detail = function(req, res, next) {
             });
         },
         function(user, callback) {
-            if (user == undefined) {
+            if (!user) {
                 res.status(404);
                 res.send({ title: 'User Detail', error: "User could not be found"});
                 return;
