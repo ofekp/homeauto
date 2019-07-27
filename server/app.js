@@ -4,14 +4,85 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var path = require('path');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+var session = require('express-session');
+const TokenGenerator = require('uuid-token-generator');
+const router = express.Router();
+var MongoStore = require('connect-mongo')(session);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var catalogRouter = require('./routes/catalog');
 var homeKeeperRouter = require('./routes/homeKeeper');
+var loginRouter = require('./routes/login');
 
 var app = express();
+var mongoDB = 'mongodb://dbuser:mydbdbmy@mongo:27017/db'  // `mongo` is the name of the container, it also functions as the IP address!
+
+// *****
+// Login
+// =====
+const tokgen256 = new TokenGenerator(256, TokenGenerator.BASE62);
+
+var sess = {
+  key: 'user_sid',
+  // genid: async function(req) {
+  //   console.log("session!")
+  //   return tokgen256.generate(); // use UUIDs for session IDs
+  // },
+  resave: false,
+  saveUninitialized: false,
+  secret: 'home-keeper secret',
+  store: new MongoStore({
+    url: mongoDB,
+  })
+}
+
+if (process.env.ENV === 'production') {
+  console.log("PRODUCTION")
+  app.set('trust proxy', 1)  // trust first proxy
+  sess.cookie.secure = true  // serve secure cookies
+}
+
+app.use(session(sess));
+
+app.use((req, res, next) => {
+  if (req.cookies && req.cookies.user_sid && !req.session.email) {
+    // server restarted but the user is sending the session id
+    res.clearCookie('user_sid');
+    res.status(401)
+    res.send("Please sign in again.")
+    return;
+  }
+  next();
+});
+
+// middleware function to check for logged-in users
+var sessionChecker = (req, res, next) => {
+  if (req.session.user && req.cookies.user_sid) {
+      res.redirect('/dashboard');
+  } else {
+      next();
+  }    
+};
+
+// app.use(function (req, res, next) {
+//   console.log("middleware " + req.session.email)
+//   req.session.email = "123@email.com"
+//   // if (req.headers['token-id']) {
+//   //   console.log("Found token id in request: " + req.headers['token-id'])
+//   //   req.session.email = "email@email.com";
+//   // }
+
+//   // if (!req.session.email) {
+//   //   console.log("No email found for cookie")
+//   // }
+
+//   // console.log("continuing")
+//   next()
+// })
+
+app.use('/home-keeper/login', loginRouter);
 
 // since we need moment in pug
 app.locals.moment = require('moment');
@@ -21,7 +92,6 @@ var mongoose = require('mongoose');
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
-var mongoDB = 'mongodb://dbuser:mydbdbmy@mongo:27017/db'  // `mongo` is the name of the container, it also functions as the IP address!
 mongoose.connect(mongoDB);
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;

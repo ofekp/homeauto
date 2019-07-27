@@ -1,56 +1,43 @@
 const User = require('../models/user');
 const Account = require('../models/account');
 const async = require('async');
-const jwt_decode = require('jwt-decode');
-const TokenGenerator = require('uuid-token-generator');
 
-const {body, validationResult, sanitizeBody} = require('express-validator');
+const {check, validationResult, sanitizeBody} = require('express-validator');
 //const {body, validationResult} = require('express-validator/check');
 //const {sanitizeBody} = require('express-validator/filter');  
 
 // Handle user create on POST.
-exports.user_create_post = [
-    // validate fields
-    body('email').isLength({ min: 3}).trim().withMessage('Email address must be specified.')
-        .isEmail().withMessage('Email must be valid.'),
-
-    // sanitize fields
-    sanitizeBody('email').trim().escape(),
-
-    // process the request
-    (req, res, next) => {
-        // extract validation errors
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            // there are errors
-            res.send({ title: 'Create User', error: errors.array() });
-            return;
-        }
-
-        // data from the form is valid
-        var user = new User({
-            email: req.body.email,
-            name: req.body.name,
-        });
-
-        user.save(function(err) {
-            if (err) { return next(err) }
-            // successful
-            res.send({ title: 'Create User', user: user });
-        });
+exports.user_create_post = async function(req, res, next) {
+    if (!req.session.email) {
+        // there are errors
+        res.status(401)
+        res.send("Unautorized.");
+        return;
     }
-];
+
+    // data from the form is valid
+    var user = new User({
+        email: req.session.email,
+        name: req.body.name,
+    });
+
+    user.save(function(err) {
+        if (err) { return next(err) }
+        // successful
+        res.send({ title: 'Create User', user: user });
+    });
+}
 
 // Handle User delete on POST.
 exports.user_delete_post = function(req, res, next) {
     async.waterfall([
         function(callback) {
-            if (req.body.email) {
-                User.findOne({ 'email': req.body.email }, function(err, user) {
+            if (req.session.email) {
+                User.findOne({ 'email': req.session.email }, function(err, user) {
                     callback(null, user);
                 });
-            } else {
+            } else if (req.session.email === process.env.ADMIN_EMAIL) {
+                // ADMIN
                 console.log("id: " + req.body.id)
                 User.findById(req.body.id, function(err, user) {
                     callback(null, user);
@@ -58,7 +45,7 @@ exports.user_delete_post = function(req, res, next) {
             }
         },
         function(user, callback) {
-            if (user == undefined) {
+            if (!user) {
                 res.send({ title: 'Delete User', error: "User could not be found"});
                 return;
             }
@@ -72,7 +59,6 @@ exports.user_delete_post = function(req, res, next) {
 
         // delete all user accounts
         let del_accounts_count = 0;
-        console.log(results);
         if (results.accounts !== null && results.accounts.length > 0) {
             for (account in results.accounts) {
                 Account.findByIdAndRemove(account.id, function deleteAccount(err) {
@@ -92,20 +78,31 @@ exports.user_delete_post = function(req, res, next) {
 
 // Display list of all Users.
 exports.user_list = function(req, res, next) {
-    User.find()
+    if (req.session.email && req.session.email === process.env.ADMIN_EMAIL) {
+        // ADMIN
+        User.find()
         .sort([['join_date', 'ascending']])
         .exec(function(err, list_users) {
             if (err) { return next(err); }
             // successful
             res.send({ title: 'User List', user_list: list_users });
         });
+    } else {
+        User.find({ 'email': req.session.email })
+        .sort([['join_date', 'ascending']])
+        .exec(function(err, list_users) {
+            if (err) { return next(err); }
+            // successful
+            res.send({ title: 'User List', user_list: list_users });
+        });
+    }
 };
 
 // Display detail page for a specific User.
 exports.user_detail = function(req, res, next) {
     async.waterfall([
         function(callback) {
-            User.findOne({ 'email': req.body.email }, function(err, user) {
+            User.findOne({ 'email': req.session.email }, function(err, user) {
                 callback(null, user);
             });
         },

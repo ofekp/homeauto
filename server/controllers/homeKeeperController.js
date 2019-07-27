@@ -2,10 +2,6 @@ const User = require('../models/user');
 const Account = require('../models/account');
 const risco = require('./risco');
 
-const async = require('async');
-const axios = require('axios');
-const querystring = require('querystring');
-
 const actionOnGoogleClientId = process.env.ACTION_ON_GOOGLE_CLIENT_ID;
 
 const {
@@ -16,8 +12,6 @@ const {
     Button,
     SignIn,
     Confirmation,
-    Permission,
-    UnauthorizedError
 } = require("actions-on-google");
   
 const app = dialogflow({
@@ -33,6 +27,7 @@ const getUserById = async (id) => {
 }
 
 const getAccounts = async (user_id, account_type) => {
+    // TODO: use account_type correctly, simply adding 'account_type': account_type will not work, though.
     return await Account.find({ user: user_id });
 }
 
@@ -55,19 +50,6 @@ const createUser = async(email, name) => {
         },
         { upsert : true }).exec();
 }
-
-signin_operation_carousel = new Carousel({
-    items: {
-      signin: {
-        title: 'Sign in',
-        description: 'Sigin in',
-      },
-      exit: {
-        title: 'Exit',
-        description: 'Exit',
-      }
-    }
-})
 
 risco_operation_carousel = new Carousel({
     items: {
@@ -101,56 +83,6 @@ homeKeeperAppCard = new BasicCard({
     }),
     display: 'CROPPED',
 });
-
-const createAccount = async(user_id, account_type, user_name, password, additional_data, device_name) => {
-
-    // currently only allowing one device of each type
-    //account = await Account.findOne({ 'user': user.id, 'account_type': account_type }).exec();
-    //console.log(account);
-
-    // if (account === undefined) {
-    //     account = new Account();
-    // } else {
-    //     account
-    // }
-
-    // console.log("==>");
-    // console.log(user_id);
-    // console.log(account_type);
-    // console.log(user_name);
-    // console.log(password);
-    // console.log(additional_data);
-    // console.log(device_name);
-
-    await Account.updateOne( 
-        { 'user': user_id, 'account_type': account_type },
-        {
-            user: user_id,
-            account_type: account_type,
-            user_name: user_name,
-            password: password,
-            additional_data: JSON.stringify(additional_data),
-            device_name: device_name.toLowerCase(),
-        },
-        { upsert : true }).exec();
-
-    // await account.save(function(err) {
-    //     if (err) {
-    //         console.log(err);
-    //         return err; 
-    //     }
-    //     // success
-    //     return;
-    // });
-}
-
-const deleteAccount = async(user_id, account_type, device_name) => {
-    //console.log(user_id);
-    //console.log(account_type);
-    //console.log(device_name);
-    await Account.deleteOne(
-        { 'user': user_id, 'account_type': account_type, 'device_name': device_name.toLowerCase() }).exec();
-}
 
 // Intent that starts the account linking flow.
 app.intent('Start Sign In', (conv) => {
@@ -187,23 +119,17 @@ app.intent('Get Signin', async (conv, params, signin) => {
 });
 
 app.intent("Default Welcome Intent", async (conv) => {
-    console.log("Default Welcome Intent");
-    console.log(conv.user.profile);
-
     const {payload} = conv.user.profile;
     const name = payload ? ` ${payload.given_name}` : 'there';
     // conv.user.storage.id contains the id of the record for the user in the DB
     if (conv.user.storage.id) {
         const user = await getUserById(conv.user.storage.id);
-        console.log(conv.user.storage.id);
-        console.log(user);
         if (!user) {
             return conv.ask(new Confirmation(`You need to sign in again. Would you like to do that?`));
         }
 
         // the user was found
         var riscoAccount = getRiscoAccount(conv.user.storage.id);
-        console.log(riscoAccount);
         if (!riscoAccount) {
             conv.ask(homeKeeperAppCard);
             return conv.close(`You must add a device first, please visit https://ofekp.dynu.net to add a device.`);
@@ -230,7 +156,6 @@ app.intent('Signin Confirmation', async (conv, params, confirmationGranted) => {
     
         // place the user id in the conversation JSON
         conv.data.id = user.id;
-        console.log(conv.data.id)
     
         if (conv.data.id) {
             // conv.user is persistant across conversations
@@ -253,21 +178,18 @@ app.intent('Signin Confirmation', async (conv, params, confirmationGranted) => {
 app.intent('What Can You Do', async(conv, params, signin) => {
     var riscoAccount = await getRiscoAccount(conv.user.storage.id);
     if (!riscoAccount) {
-        conv.ask('I can operate your Risco home security system.\nTo set up a device say \"set up risco device\".\n\"After the setup, you can say \"arm risco\" or \"arm risco partially"\" or \"disarm risco\". You can delete any set up device by saying \"delete device\" followed by the device name.');
-        conv.ask('What would you like to do?');
-        // conv.ask(new Carousel({
-        //     items: {
-        //       add_risco_device: {
-        //         title: 'Set up Risco device',
-        //         description: 'Set up a new Risco device',
-        //       },
-        //     }
-        // }));
+        conv.ask('I can operate your Risco home security system.\nYou can set up a device using the link below.\n\"After the setup, you can say \"arm risco\" or \"arm risco partially"\" or \"disarm risco\".');
+        conv.close(homeKeeperAppCard);
     } else {
-        conv.ask('You can say \"arm risco\" or \"arm risco partially\" or \"disarm risco\".');
+        conv.ask('You can say \"arm risco\" or \"arm risco partially\" or \"disarm risco\". Or you can say \"webapp\" to get the link to the web application.');
         conv.ask('What would you like to do?');
-        // conv.ask(risco_operation_carousel);
+        conv.ask(risco_operation_carousel);
     }
+});
+
+app.intent('Web App', async(conv, params, signin) => {
+    conv.ask('Here\'s the link to the web application, from here you can configure your devices, or delete your account.');
+    conv.close(homeKeeperAppCard);
 });
 
 async function executeRiscoAction(conv, riscoAccount, action) {
@@ -298,8 +220,6 @@ async function executeRiscoAction(conv, riscoAccount, action) {
 }
 
 app.intent('Carousel Selection', async (conv, params, option) => {
-    console.log(option);
-    console.log(conv.user.storage.id);
     if (!option) {
         return conv.close("Nothing was selection, bye bye!");
     }
@@ -342,9 +262,7 @@ app.intent('Arm Risco Partially', async(conv) => {
 });
 
 app.intent('Disarm Risco', async(conv) => {
-    console.log("Disarm Risco: " + conv.user.storage.id);
     var riscoAccount = await getRiscoAccount(conv.user.storage.id);
-    console.log(riscoAccount);
     if (!riscoAccount) {
         conv.ask('Risco device has not been set up yet. Please use the link below to set up a device.');
         return conv.close(homeKeeperAppCard);
@@ -353,6 +271,52 @@ app.intent('Disarm Risco', async(conv) => {
     conv.close(message);
 });
 
+// const createAccount = async(user_id, account_type, user_name, password, additional_data, device_name) => {
+
+//     // currently only allowing one device of each type
+//     //account = await Account.findOne({ 'user': user.id, 'account_type': account_type }).exec();
+//     //console.log(account);
+
+//     // if (account === undefined) {
+//     //     account = new Account();
+//     // } else {
+//     //     account
+//     // }
+
+//     // console.log("==>");
+//     // console.log(user_id);
+//     // console.log(account_type);
+//     // console.log(user_name);
+//     // console.log(password);
+//     // console.log(additional_data);
+//     // console.log(device_name);
+
+//     await Account.updateOne( 
+//         { 'user': user_id, 'account_type': account_type },
+//         {
+//             user: user_id,
+//             account_type: account_type,
+//             user_name: user_name,
+//             password: password,
+//             additional_data: JSON.stringify(additional_data),
+//             device_name: device_name.toLowerCase(),
+//         },
+//         { upsert : true }).exec();
+
+//     // await account.save(function(err) {
+//     //     if (err) {
+//     //         console.log(err);
+//     //         return err; 
+//     //     }
+//     //     // success
+//     //     return;
+//     // });
+// }
+
+// const deleteAccount = async(user_id, account_type, device_name) => {
+//     await Account.deleteOne(
+//         { 'user': user_id, 'account_type': account_type, 'device_name': device_name.toLowerCase() }).exec();
+// }
 
 // app.intent('add_device', (conv, params, signin) => {
 //     if (params.device_type.toLowerCase() !== 'risco') {

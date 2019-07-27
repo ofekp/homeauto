@@ -93,6 +93,7 @@ services:
       - CA_PATH
       - DOMAIN
       - ACTION_ON_GOOGLE_CLIENT_ID
+      - ADMIN_EMAIL
     depends_on:
       - mongoClientTemp
     links:

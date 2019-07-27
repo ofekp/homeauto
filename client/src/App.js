@@ -9,7 +9,7 @@ import {
 import Home from "./Home";
 import Devices from "./Devices";
 import RiscoLogin from "./RiscoLogin";
-import { getUserDetails, createUser, deleteUser } from "./helpers/db";
+import { getUserDetails, createUser, deleteUser, getCookie, revokeCookie } from "./helpers/db";
 import { appTheme } from './AppTheme';
 import { GoogleLogin } from 'react-google-login';
 import { MuiThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles'; // v1.x
@@ -56,10 +56,12 @@ const useStyles = makeStyles(theme => ({
 
 function Login(props) {
   const responseGoogle = async (response) => {
+    console.log(response);
     if (!response || !response.profileObj || !response.profileObj.email) {
-      console.log("Error while siging in, email could not be found.");
+      console.log("Error while signing in, email could not be found.");
       return;
     }
+    await getCookie(response.tokenId);
     const email = response.profileObj.email;
     const name = response.profileObj.name;
     var userDetails = await getUserDetails(email);
@@ -122,8 +124,9 @@ class App extends Component {
     this.setState({anchorEl: null});
   }
 
-  handleSignout = () => {
+  handleSignout = async () => {
     localStorage.clear();
+    await revokeCookie();
     this.setState({anchorEl: null, userDetails: null});
   }
 

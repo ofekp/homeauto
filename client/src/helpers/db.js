@@ -4,6 +4,25 @@ axios.defaults.validateStatus = function () {
     return true;
 };
 
+export const getCookie = async (token_id) => {
+
+    const response = await axios.post('home-keeper/login', null, { headers: { 'token-id': token_id } });
+    if (response.status !== 200) {
+        return null;
+    }
+    const body = await response["data"];
+    return body;
+}
+
+export const revokeCookie = async () => {
+    const response = await axios.post('home-keeper/login/revoke', null, {});
+    if (response.status !== 200) {
+        return null;
+    }
+    const body = await response["data"];
+    return body;
+}
+
 export const getUserDetails = async (email) => {
     const response = await axios.post('home-keeper/user/detail', { "email": email }, {});
     if (response.status !== 200) {
