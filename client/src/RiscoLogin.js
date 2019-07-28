@@ -65,12 +65,15 @@ function RiscoForm(props) {
 
     await axios.post(apiBaseUrl + '/account/create', payload).then(function (response) {
       console.log(response);
-      if (response.status == 200) {
-        console.log("Device created successfully");
+      if (response.status === 200) {
+        console.log("Device updated successfully");
       } else {
         console.log("Error while creating the device");
         alert("Error while creating the device");
       }
+      form.username = ""
+      form.password = ""
+      form.pin = ""
     })
     .catch(function (error) {
       console.log(error);
