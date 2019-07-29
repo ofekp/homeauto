@@ -42,7 +42,7 @@ class Home extends Component {
       if (!userDetailsObj.accounts || userDetailsObj.accounts.length == 0) {
         return <LoginMessage title="Device Setup Required">Hey {userDetailsObj.user.name}! You have not yet set up any device. Please set up a Risco device in Risco Login tab.</LoginMessage>
       } else {
-        return <LoginMessage title="You're logged in &#x2714;">{userDetailsObj.user.name ? "Hey " + userDetailsObj.user.name + "!" : "Hey there!"}  Welcome to Home-Keeper.</LoginMessage>
+        return <LoginMessage title="You're logged in &#x2714;">{userDetailsObj.user.name ? "Hey " + userDetailsObj.user.name + "!" : "Hey there!"} Welcome to Home-Keeper.</LoginMessage>
       }
     }
   }

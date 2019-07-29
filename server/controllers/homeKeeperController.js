@@ -214,7 +214,7 @@ async function executeRiscoAction(conv, riscoAccount, action) {
             message = 'Risco device is now armed.';
         }
     } else {
-        message = 'Something went wrong, Risco state cannot be determined. Are your Risco account details correct? you can try to set it up again by saying "set up risco device".';
+        message = 'Something went wrong, Risco state cannot be determined. Are your Risco account details correct? you can try to set it up again using the link below.';
     }
     return message
 }
@@ -232,43 +232,63 @@ app.intent('Carousel Selection', async (conv, params, option) => {
     if (option === "disarm") {
         message = await executeRiscoAction(conv, riscoAccount, risco.RiscoAction.DISARMED);
     } else if (option === "arm_partially") {
-        message = executeRiscoAction(conv, riscoAccount, risco.RiscoAction.PARTIALLY_ARMED);
+        message = await executeRiscoAction(conv, riscoAccount, risco.RiscoAction.PARTIALLY_ARMED);
     } else if (option === "arm_fully") {
-        message = executeRiscoAction(conv, riscoAccount, risco.RiscoAction.ARMED);
+        message = await executeRiscoAction(conv, riscoAccount, risco.RiscoAction.ARMED);
     } else {
         message = "You selected an unsupported option.";
     }
-    conv.close(message);
+    if (message.indexOf("link below") >= 0) {
+        conv.ask(message);
+        conv.close(homeKeeperAppCard);
+    } else {
+        conv.close(message);
+    }
 });
 
-app.intent('Arm Risco Fully', async(conv) => {
+app.intent('Arm Risco Fully', async (conv) => {
     var riscoAccount = await getRiscoAccount(conv.user.storage.id);
     if (!riscoAccount) {
         conv.ask('Risco device has not been set up yet. Please use the link below to set up a device.');
         return conv.close(homeKeeperAppCard);
     }
-    const message = executeRiscoAction(conv, riscoAccount, risco.RiscoAction.ARMED);
-    conv.close(message);
+    const message = await executeRiscoAction(conv, riscoAccount, risco.RiscoAction.ARMED);
+    if (message.indexOf("link below") >= 0) {
+        conv.ask(message);
+        conv.close(homeKeeperAppCard);
+    } else {
+        conv.close(message);
+    }
 });
 
-app.intent('Arm Risco Partially', async(conv) => {
+app.intent('Arm Risco Partially', async (conv) => {
     var riscoAccount = await getRiscoAccount(conv.user.storage.id);
     if (!riscoAccount) {
         conv.ask('Risco device has not been set up yet. Please use the link below to set up a device.');
         return conv.close(homeKeeperAppCard);
     }
-    const message = executeRiscoAction(conv, riscoAccount, risco.RiscoAction.PARTIALLY_ARMED);
-    conv.close(message);
+    const message = await executeRiscoAction(conv, riscoAccount, risco.RiscoAction.PARTIALLY_ARMED);
+    if (message.indexOf("link below") >= 0) {
+        conv.ask(message);
+        conv.close(homeKeeperAppCard);
+    } else {
+        conv.close(message);
+    }
 });
 
-app.intent('Disarm Risco', async(conv) => {
+app.intent('Disarm Risco', async (conv) => {
     var riscoAccount = await getRiscoAccount(conv.user.storage.id);
     if (!riscoAccount) {
         conv.ask('Risco device has not been set up yet. Please use the link below to set up a device.');
         return conv.close(homeKeeperAppCard);
     }
-    const message = executeRiscoAction(conv, riscoAccount, risco.RiscoAction.DISARMED);
-    conv.close(message);
+    const message = await executeRiscoAction(conv, riscoAccount, risco.RiscoAction.DISARMED);
+    if (message.indexOf("link below") >= 0) {
+        conv.ask(message);
+        conv.close(homeKeeperAppCard);
+    } else {
+        conv.close(message);
+    }
 });
 
 // const createAccount = async(user_id, account_type, user_name, password, additional_data, device_name) => {

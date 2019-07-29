@@ -83,13 +83,14 @@ exports.login = async(account) => {
         if (response3.status !== 200) {
             return null;
         }
+
         // in case the pin number is wrong
         if (body3.indexOf("registration-form") >= 0) {
             return null;
         }
 
         return cookie_str;
-    } catch(error) {
+    } catch (error) {
         //console.log(error);
     }
 
@@ -113,17 +114,22 @@ exports.action = async (conv, account, riscoAction) => {
     }
 
     // try to see if the current conversation already has a cookie
-    var cookie_str = null;
-    if (conv && conv.data && conv.data.risco_cookie) {
-        cookie_str = conv.data.risco_cookie;
-    } else {
-        cookie_str = await this.login(account);
-        if (cookie_str == null) {
-            return null;
-        }
-        if (conv) {
-            conv.data.risco_cookie = cookie_str;
-        }
+    // var cookie_str = null;
+    // if (conv && conv.data && conv.data.risco_cookie) {
+    //     cookie_str = conv.data.risco_cookie;
+    // } else {
+    //     cookie_str = await this.login(account);
+    //     if (!cookie_str) {
+    //         return null;
+    //     }
+    //     if (conv) {
+    //         conv.data.risco_cookie = cookie_str;
+    //     }
+    // }
+
+    cookie_str = await this.login(account);
+    if (!cookie_str) {
+        return null;
     }
 
     body_str = "type=0%3A" + riscoAction + "&passcode=------&bypassZoneId=-1";
@@ -156,17 +162,22 @@ exports.action = async (conv, account, riscoAction) => {
 
 exports.getState = async (conv, account) => {
     // try to see if the current conversation already has a cookie
-    var cookie_str = null;
-    if (conv && conv.data && conv.data.risco_cookie) {
-        cookie_str = conv.data.risco_cookie;
-    } else {
-        cookie_str = await this.login(account);
-        if (!cookie_str) {
-            return null;
-        }
-        if (conv) {
-            conv.data.risco_cookie = cookie_str;
-        }
+    // var cookie_str = null;
+    // if (conv && conv.data && conv.data.risco_cookie) {
+    //     cookie_str = conv.data.risco_cookie;
+    // } else {
+    //     cookie_str = await this.login(account);
+    //     if (!cookie_str) {
+    //         return null;
+    //     }
+    //     if (conv) {
+    //         conv.data.risco_cookie = cookie_str;
+    //     }
+    // }
+
+    cookie_str = await this.login(account);
+    if (!cookie_str) {
+        return null;
     }
 
     body_str = "";

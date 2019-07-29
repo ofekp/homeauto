@@ -12,7 +12,7 @@ import RiscoLogin from "./RiscoLogin";
 import { getUserDetails, createUser, deleteUser, getCookie, revokeCookie } from "./helpers/db";
 import { appTheme } from './AppTheme';
 import { GoogleLogin } from 'react-google-login';
-import { MuiThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles'; // v1.x
+import { MuiThemeProvider, createMuiTheme, makeStyles, withStyles } from '@material-ui/core/styles'; // v1.x
 
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
@@ -35,7 +35,7 @@ function TabContainer(props) {
   );
 }
 
-const useStyles = makeStyles(theme => ({
+const styles = (theme) => ({
   root: {
     flexGrow: 1,
   },
@@ -45,7 +45,7 @@ const useStyles = makeStyles(theme => ({
   title: {
     flexGrow: 1,
   },
-}));
+});
 
 // const useStyles = makeStyles(theme => ({
 //   root: {
@@ -165,6 +165,7 @@ class App extends Component {
   }
 
   render() {
+    const {classes} = this.props;
     const open = Boolean(this.state.anchorEl);
 
     return (
@@ -178,7 +179,7 @@ class App extends Component {
           >
             <Grid item>
               <Tabs value={this.state.content !== "login" ? this.state.content : false} onChange={(event, newValue) => { this.setState({content: newValue}) }}>
-                <Tab value="home" label="Home" wrapped />
+                <Tab value="home" label="Home" />
                 <Tab value="devices" label="Devices" />
                 <Tab value="risco_login" label="Risco Login" />
               </Tabs>
@@ -244,4 +245,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withStyles(styles)(App);
