@@ -41,6 +41,7 @@ router.post('/', async function(req, res) {
     res.send("Error while logging in")
 });
 
+// TODO: when the user revokes a session, perhaps all the sessions of that user should also be revoked
 router.post('/revoke', async function(req, res) {
     req.session.destroy();
     res.send("Session revoked.")

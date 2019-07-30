@@ -36,7 +36,7 @@ exports.user_delete_post = function(req, res, next) {
                 res.status(401)
                 res.send("Unauthorized")
                 return
-            } else if (req.session.email === process.env.ADMIN_EMAIL) {
+            } else if (req.session.email === process.env.ADMIN_EMAIL && req.body && req.body.id) {
                 // ADMIN
                 User.findById(req.body.id, function(err, user) {
                     callback(null, user)
@@ -50,7 +50,7 @@ exports.user_delete_post = function(req, res, next) {
         function(user, callback) {
             if (!user) {
                 res.status(404)
-                res.send({ title: 'Delete User', error: "User could not be found"})
+                res.send({ title: 'Delete User', error: "User [" + req.session.email + "] could not be found"})
                 return;
             }
             Account.find({ 'user': user.id }, function(error, accounts) {

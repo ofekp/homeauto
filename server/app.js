@@ -6,8 +6,6 @@ var logger = require('morgan');
 var path = require('path');
 var bodyParser = require('body-parser');
 var session = require('express-session');
-const TokenGenerator = require('uuid-token-generator');
-const router = express.Router();
 var MongoStore = require('connect-mongo')(session);
 
 var indexRouter = require('./routes/index');
@@ -22,7 +20,6 @@ var mongoDB = 'mongodb://dbuser:mydbdbmy@mongo:27017/db'  // `mongo` is the name
 // *****
 // Login
 // =====
-const tokgen256 = new TokenGenerator(256, TokenGenerator.BASE62);
 
 var sess = {
   key: 'user_sid',
@@ -46,6 +43,7 @@ if (process.env.ENV === 'production') {
 
 app.use(session(sess));
 
+// TODO: is this needed? it should not happen now that I use Mongoose to keep the sessions
 app.use((req, res, next) => {
   if (req.cookies && req.cookies.user_sid && !req.session.email) {
     // server restarted but the user is sending the session id
