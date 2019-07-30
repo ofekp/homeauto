@@ -16,8 +16,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import MenuIcon from '@material-ui/icons/Menu';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-//import { chnageState } from './home/db';
-import { getUserDetails } from "./helpers/db";
+import { getUserDetails, revokeCookie } from "./helpers/db";
 
 const useStyles = makeStyles(theme => ({
   progress: {
@@ -84,18 +83,24 @@ function RiscoDevice(props) {
     }
 
     const response = await axios.post(apiBaseUrl + '/account/delete', payload);
-    if (response.status == 200) {
+    if (response.status === 200) {
       // get the updated state of the userDetails
-      var userDetails = await getUserDetails(props.email);
-      if (!userDetails) {
+      const userDetailsResponse = await getUserDetails();
+      if (userDetailsResponse.status === 401) {
+        props.handleLogout()
+      } else if (userDetailsResponse.status === 200) {
+        const userDetailsStr = JSON.stringify(userDetails);
+        props.updateUserDetails(userDetailsStr);
+      } else {
         // create a new account for the user
         console.log("ERROR: When deleting a user defined device.");
         return;
       }
-      const userDetailsStr = JSON.stringify(userDetails);
-      props.updateUserDetails(userDetailsStr);
+    } else if (response.status === 401) {
+      props.handleLogout()
     } else {
-      return null;
+      console.log("ERROR: The device probably not exists, please try to logout and login in again.");
+      return;
     }
   }
 
@@ -106,17 +111,15 @@ function RiscoDevice(props) {
       "device_id": device_id,
     }
 
-    await axios.post(apiBaseUrl + '/device/getState', payload).then(function (response) {
-      if (response.status == 200) {
-        const state = response.data.state;
-        setAlarmState(state);
-      } else {
-        setAlarmState(RiscoAction.ERROR);
-      }
-    })
-    .catch(function (error) {
-      return null;
-    });
+    const response = await axios.post(apiBaseUrl + '/device/getState', payload)
+    if (response.status === 200) {
+      const state = response.data.state
+      setAlarmState(state);
+    } else if (response.status === 401) {
+      props.handleLogout()
+    } else {
+      setAlarmState(RiscoAction.ERROR)
+    }
   }
 
   const setRiscoState = async (device_id, state) => {
@@ -127,17 +130,16 @@ function RiscoDevice(props) {
       "state": state,
     }
 
-    await axios.post(apiBaseUrl + '/device/setState', payload).then(function (response) {
-      if (response.status == 200) {
-        const state = response.data.state;
-        setAlarmState(state);
-      } else {
-        return null;
-      }
-    })
-    .catch(function (error) {
+    const response = await axios.post(apiBaseUrl + '/device/setState', payload)
+    if (response.status === 401) {
+      props.handleLogout()
+    } else if (response.status === 200) {
+      const state = response.data.state;
+      setAlarmState(state);
+    } else {
+      console.log("ERROR: While setting the device state.")
       return null;
-    });
+    }
   }
 
   useEffect(() => {
@@ -248,6 +250,16 @@ class Devices extends Component {
     }));
   }
 
+  handleLogout = async () => {
+    localStorage.clear()
+    await revokeCookie()
+    this.setState(() => ({
+      userDetails: null,
+    }));
+    // call App component handleLogout in order to show the Login button
+    this.props.handleLogout()
+  }
+
   renderDevice(device) {
     const userDetailsObj = JSON.parse(this.state.userDetails);
     const email = userDetailsObj.user.email;
@@ -257,6 +269,7 @@ class Devices extends Component {
       email={email}
       device_id={device._id}
       updateUserDetails={this.updateUserDetails}
+      handleLogout={this.handleLogout}
     />;
   }
 

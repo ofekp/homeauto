@@ -32,37 +32,47 @@ exports.user_create_post = async function(req, res, next) {
 exports.user_delete_post = function(req, res, next) {
     async.waterfall([
         function(callback) {
-            if (req.session.email) {
-                User.findOne({ 'email': req.session.email }, function(err, user) {
-                    callback(null, user);
-                });
+            if (!req.session.email) {
+                res.status(401)
+                res.send("Unauthorized")
+                return
             } else if (req.session.email === process.env.ADMIN_EMAIL) {
                 // ADMIN
-                console.log("id: " + req.body.id)
                 User.findById(req.body.id, function(err, user) {
-                    callback(null, user);
+                    callback(null, user)
+                });
+            } else {
+                User.findOne({ 'email': req.session.email }, function(err, user) {
+                    callback(null, user)
                 });
             }
         },
         function(user, callback) {
             if (!user) {
-                res.send({ title: 'Delete User', error: "User could not be found"});
+                res.status(404)
+                res.send({ title: 'Delete User', error: "User could not be found"})
                 return;
             }
             Account.find({ 'user': user.id }, function(error, accounts) {
-                callback(null, { user: user,  accounts: accounts});
+                callback(null, { user: user,  accounts: accounts })
             })
         }
     ], function(err, results) {
         // this verifies that the author exists
-        if (err) { return next(err); }
+        if (err) { 
+            err.status = 500;
+            return next(err);
+        }
 
         // delete all user accounts
         let del_accounts_count = 0;
         if (results.accounts !== null && results.accounts.length > 0) {
             for (account in results.accounts) {
                 Account.findByIdAndRemove(account.id, function deleteAccount(err) {
-                    if (err) { return next(err); }
+                    if (err) { 
+                        err.status = 500;
+                        return next(err);
+                    }
                     del_accounts_count += 1;
                 });
             }
@@ -70,7 +80,10 @@ exports.user_delete_post = function(req, res, next) {
 
         // delete user
         User.findByIdAndRemove(results.user.id, function deleteUser(err) {
-            if (err) { return next(err); }
+            if (err) { 
+                err.status = 500;
+                return next(err);
+            }
             res.send({ title: 'Delete User', user: results.user.id, num_of_del_accounts: del_accounts_count });
         });
     });
@@ -102,6 +115,11 @@ exports.user_list = function(req, res, next) {
 exports.user_detail = function(req, res, next) {
     async.waterfall([
         function(callback) {
+            if (!req.session.email) {
+                res.status(401);
+                res.send("Unauthorized");
+                return;
+            }
             User.findOne({ 'email': req.session.email }, function(err, user) {
                 callback(null, user);
             });
@@ -117,8 +135,11 @@ exports.user_detail = function(req, res, next) {
             });
         }
     ], function(err, results) {
-        if (err) { return next(err) }
-        if (results.user == null) {
+        if (err) { 
+            err.status = 500
+            return next(err)
+        }
+        if (!results.user) {
             var err = new Error('User not found');
             err.status = 404;
             return next(err);

@@ -1,7 +1,6 @@
 import React, { Component, useState } from 'react';
-import { getUserDetails } from './helpers/db';
+import { getUserDetails, revokeCookie  } from './helpers/db';
 import { appTheme } from './AppTheme';
-import { Redirect } from 'react-router-dom';
 import axios from 'axios';
 import LoginMessage from './LoginMessage';
 
@@ -63,27 +62,30 @@ function RiscoForm(props) {
       "device_name": "risco"
     }
 
-    await axios.post(apiBaseUrl + '/account/create', payload).then(function (response) {
-      console.log(response);
-      if (response.status === 200) {
-        console.log("Device updated successfully");
-      } else {
-        console.log("Error while creating the device");
-        alert("Error while creating the device");
-      }
-      form.username = ""
-      form.password = ""
-      form.pin = ""
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+    const response = await axios.post(apiBaseUrl + '/account/create', payload)
+    if (response.status === 401) {
+      props.handleLogout()
+    } else if (response.status === 200) {
+      console.log("Device updated successfully");
+    } else {
+      console.log("Error while creating the device");
+    }
 
-    const userDetails = await getUserDetails(userDetailsObj.user.email);
-    console.log(userDetails)
-    const userDetailsStr = JSON.stringify(userDetails);
-    localStorage.setItem('userDetails', userDetailsStr);
-    props.updateUserDetails(userDetailsStr);
+    form.username = ""
+    form.password = ""
+    form.pin = ""
+
+    const userDetailsResponse = await getUserDetails(userDetailsObj.user.email);
+    if (userDetailsResponse.status === 401) {
+      props.handleLogout()
+    } else if (userDetailsResponse.status === 200) {
+      const userDetails = await userDetailsResponse['data']
+      const userDetailsStr = JSON.stringify(userDetails);
+      localStorage.setItem('userDetails', userDetailsStr);
+      props.updateUserDetails(userDetailsStr);
+    } else {
+      console.log("ERROR: While retrieving user data after updating a device")
+    }
   }
 
   return (
@@ -148,6 +150,16 @@ class RiscoLogin extends Component {
     }
   }
 
+  handleLogout = async () => {
+    localStorage.clear()
+    await revokeCookie()
+    this.setState(() => ({
+      userDetails: null,
+    }));
+    // call App component handleLogout in order to show the Login button
+    this.props.handleLogout()
+  }
+
   updateUserDetails = (userDetails) => {
     this.setState(() => ({
       userDetails: userDetails,
@@ -166,7 +178,7 @@ class RiscoLogin extends Component {
       return <LoginMessage>You'll first need to sign in before using this app. Use the the button on the upper right corner of this app.</LoginMessage>
     }
 
-    return <RiscoForm userDetails={this.state.userDetails} updateUserDetails={this.updateUserDetails} />;
+    return <RiscoForm userDetails={this.state.userDetails} updateUserDetails={this.updateUserDetails} handleLogout={this.handleLogout} />;
   }
 }
 

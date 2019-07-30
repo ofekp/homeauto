@@ -1,7 +1,4 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-import { Redirect } from 'react-router-dom';
-import { getUserDetails, loginMessage } from './helpers/db';
 import LoginMessage from './LoginMessage'
 
 class Home extends Component {

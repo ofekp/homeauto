@@ -64,10 +64,20 @@ function Login(props) {
     await getCookie(response.tokenId);
     const email = response.profileObj.email;
     const name = response.profileObj.name;
-    var userDetails = await getUserDetails(email);
-    if (!userDetails) {
-      // create a new account for the user
+    var response = await getUserDetails(email);
+    var userDetails
+    if (response.status === 404) {
       userDetails = await createUser(email, name);
+    } else if (response.status === 200) {
+      userDetails = await response['data']
+    } else {
+      // 401, 500
+      props.handleLogout()
+      return
+    }
+    if (!userDetails) {
+      console.log("ERROR: While logging in [" + userDetails + "]")
+      return
     }
     const userDetailsStr = JSON.stringify(userDetails);
     localStorage.setItem('userDetails', userDetailsStr);
@@ -124,21 +134,19 @@ class App extends Component {
     this.setState({anchorEl: null});
   }
 
-  handleSignout = async () => {
+  handleLogout = async () => {
     localStorage.clear();
     await revokeCookie();
-    this.setState({anchorEl: null, userDetails: null});
+    this.setState({ anchorEl: null, userDetails: null, content: "login" });
   }
 
   handleDeleteUser = async () => {
-    const userDetailsObj = JSON.parse(this.state.userDetails);
-    const body = await deleteUser(userDetailsObj.user.email);
+    const body = await deleteUser();
     if (!body) {
       console.log("ERROR: User could not be deleted.");
       return;
     }
-    localStorage.clear();
-    this.setState({anchorEl: null, userDetails: null});
+    await this.handleLogout();
   }
 
   handleGithub = () => {
@@ -212,7 +220,7 @@ class App extends Component {
                   open={open}
                   onClose={this.handleClose}
                 >
-                  <MenuItem onClick={this.handleSignout}>Sign out</MenuItem>
+                  <MenuItem onClick={this.handleLogout}>Sign out</MenuItem>
                   <MenuItem onClick={this.handleDeleteUser}>Delete My Account</MenuItem>
                 </Menu>
                 <IconButton 
@@ -233,10 +241,10 @@ class App extends Component {
           </Grid>
         </AppBar>
         </MuiThemeProvider>
-        {this.state.content === 'login' && <TabContainer><Login setUserDetails={this.setUserDetails} setContent={this.setContent}/></TabContainer>}
+        {this.state.content === 'login' && <TabContainer><Login setUserDetails={this.setUserDetails} setContent={this.setContent} handleLogout={this.handleLogout}/></TabContainer>}
         {this.state.content === 'home' && <TabContainer><Home /></TabContainer>}
-        {this.state.content === 'devices' && <TabContainer><Devices /></TabContainer>}
-        {this.state.content === 'risco_login' && <TabContainer><RiscoLogin /></TabContainer>}
+        {this.state.content === 'devices' && <TabContainer><Devices handleLogout={this.handleLogout} /></TabContainer>}
+        {this.state.content === 'risco_login' && <TabContainer><RiscoLogin handleLogout={this.handleLogout} /></TabContainer>}
         <div className="footer">
           Home-Keeper by Ofek Pearl
         </div>
