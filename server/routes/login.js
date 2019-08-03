@@ -33,6 +33,7 @@ router.post('/', async function(req, res) {
     }
 
     if (req.session.email) {
+        req.session.device = req.device.type.toUpperCase()
         res.send("You are now logged in.")
         return;
     }
@@ -46,5 +47,7 @@ router.post('/revoke', async function(req, res) {
     req.session.destroy();
     res.send("Session revoked.")
 })
+
+// TODO: remove-all is in app.js, should be added here instead
 
 module.exports = router;

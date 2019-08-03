@@ -22,6 +22,15 @@ export const revokeCookie = async () => {
     return body;
 }
 
+export const revokeAllCookies = async () => {
+    const response = await axios.post('home-keeper/login/revoke-all', null, {});
+    if (response.status !== 200) {
+        return null;
+    }
+    const body = await response["data"];
+    return body;
+}
+
 export const getUserDetails = async () => {
     const response = await axios.post('home-keeper/user/detail', null, {})
     return response
@@ -29,12 +38,7 @@ export const getUserDetails = async () => {
 
 export const createUser = async (email, name) => {
     const response = await axios.post('home-keeper/user/create', { "email": email, "name": name }, {});
-    return response.status
-    if (response.status !== 200) {
-        return null;
-    }
-    const body = await response["data"];
-    return body;
+    return response
 }
 
 export const deleteUser = async () => {

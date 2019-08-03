@@ -9,7 +9,7 @@ import {
 import Home from "./Home";
 import Devices from "./Devices";
 import RiscoLogin from "./RiscoLogin";
-import { getUserDetails, createUser, deleteUser, getCookie, revokeCookie } from "./helpers/db";
+import { getUserDetails, createUser, deleteUser, getCookie, revokeCookie, revokeAllCookies } from "./helpers/db";
 import { appTheme } from './AppTheme';
 import { GoogleLogin } from 'react-google-login';
 import { MuiThemeProvider, createMuiTheme, makeStyles, withStyles } from '@material-ui/core/styles'; // v1.x
@@ -26,6 +26,8 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import Hidden from '@material-ui/core/Hidden';
+
+// TODO: use AsyncStorage instead of localStorage - https://github.com/react-native-community/async-storage
 
 function TabContainer(props) {
   return (
@@ -67,7 +69,12 @@ function Login(props) {
     var response = await getUserDetails(email);
     var userDetails
     if (response.status === 404) {
-      userDetails = await createUser(email, name);
+      const createUserResponse = await createUser(email, name);
+      if (createUserResponse.status !== 200) {
+        props.handleLogout()
+        return
+      }
+      userDetails = await createUserResponse['data']
     } else if (response.status === 200) {
       userDetails = await response['data']
     } else {
@@ -146,6 +153,7 @@ class App extends Component {
       console.log("ERROR: User could not be deleted.");
       return;
     }
+    await revokeAllCookies();
     await this.handleLogout();
   }
 

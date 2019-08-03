@@ -237,6 +237,7 @@ class Devices extends Component {
     }
   }
 
+  // TODO: use AsyncStorage instead of the localStorage
   componentWillMount() {
     const userDetailsStr = localStorage.getItem('userDetails');
     this.setState(() => ({

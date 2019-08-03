@@ -17,13 +17,6 @@ class Home extends Component {
   //     .catch(err => console.log(err));
   // }
 
-  // callApi = async() => {
-  //   const response = await axios.get('/catalog');
-  //   const body = await response["data"];
-  //   if (response.status !== 200) throw Error(body.message);
-  //   return body;
-  // }
-
   componentWillMount() {
     const userDetails = localStorage.getItem('userDetails');
     this.setState(() => ({

@@ -7,6 +7,7 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
+var device = require('express-device');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -21,6 +22,8 @@ var mongoDB = 'mongodb://dbuser:mydbdbmy@mongo:27017/db'  // `mongo` is the name
 // Login
 // =====
 
+console.log(process.env.EXPRESS_SESSION_SECRET)
+
 var sess = {
   key: 'user_sid',
   // genid: async function(req) {
@@ -29,10 +32,11 @@ var sess = {
   // },
   resave: false,
   saveUninitialized: false,
-  secret: 'home-keeper secret',
+  secret: process.env.EXPRESS_SESSION_SECRET,
   store: new MongoStore({
     url: mongoDB,
-  })
+  }),
+  cookie: { expires: new Date(2168483647000) }
 }
 
 if (process.env.ENV === 'production') {
@@ -63,6 +67,17 @@ var sessionChecker = (req, res, next) => {
       next();
   }    
 };
+
+app.use(device.capture())
+
+// update when the session was last used
+app.use((req, res, next) => {
+  if (req.session && req.session.email) {
+    console.log(new Date())
+    req.session.last_access = new Date()
+  }
+  next()
+})
 
 // app.use(function (req, res, next) {
 //   console.log("middleware " + req.session.email)
