@@ -14,3 +14,9 @@
 # --debug-challenges - another useful flag to use is which wait for approval before continuing to validate
 # this is good for checking that the challenge file was written by certbot inside the folder  /webroots/DOMAIN_NAME/.well-known/
 #/scripts/certbot-auto certonly --dry-run --debug-challenges --webroot -w /webroots/$1 -d $1
+
+# for renew with DRY-RUN: (--debug-challenges does not seem to work woth 'renew', only with 'certonly')
+# /scripts/certbot-auto renew --dry-run --debug-challenges
+
+# In debian, to see all crontab jobs
+# crontab -l

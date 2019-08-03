@@ -1,1 +1,1 @@
-0 3 */16 * * root /scripts/certbot-auto renew >> /var/log/cron.log 2>&1
+0 3 */2 * * root /scripts/certbot-auto renew >> /var/log/cron.log 2>&1

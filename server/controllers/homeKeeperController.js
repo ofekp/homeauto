@@ -34,7 +34,7 @@ const getAccounts = async (user_id, account_type) => {
 getRiscoAccount = async (user_id) => {
     // currently only supporting one Risco device (one account)
     var accounts = await getAccounts(user_id, 'RISCO');
-    if (!accounts || accounts.length != 1) {
+    if (!accounts || accounts.length !== 1) {
         return null;
     }
     return accounts[0];
@@ -106,6 +106,7 @@ app.intent('Get Signin', async (conv, params, signin) => {
         }
 
         // place the user id in the conversation JSON
+        // conv.data.id will only last for this conversation
         conv.data.id = user.id;
     }
 
@@ -114,9 +115,20 @@ app.intent('Get Signin', async (conv, params, signin) => {
         conv.user.storage.id = conv.data.id;
     }
 
-    conv.ask(homeKeeperAppCard);
-    conv.close(`Thank you for signing in! Please proceed to adding a device at the link above.`);
+    var riscoAccount = await getRiscoAccount(conv.user.storage.id);
+    if (!riscoAccount) {
+        conv.ask(`Thank you for signing in! Please proceed to adding a device at the following link.`);
+        conv.close(homeKeeperAppCard);
+    } else {
+        conv.ask("OK, you're all set up, what would you like to do?");
+        conv.ask(risco_operation_carousel);
+    }
 });
+
+app.intent("Sign Out", async (conv) => {
+    conv.user.storage = {}
+    conv.close("You are now signed out. You will need to sign in again to use this app.")
+})
 
 app.intent("Default Welcome Intent", async (conv) => {
     const {payload} = conv.user.profile;
@@ -129,22 +141,30 @@ app.intent("Default Welcome Intent", async (conv) => {
         }
 
         // the user was found
-        var riscoAccount = getRiscoAccount(conv.user.storage.id);
+        console.log(conv.user.storage.id)
+        var riscoAccount = await getRiscoAccount(conv.user.storage.id);
         if (!riscoAccount) {
-            conv.ask(homeKeeperAppCard);
-            return conv.close(`You must add a device first, please visit https://ofekp.dynu.net to add a device.`);
+            conv.ask(`You must add a device first, please visit the following link to add a device.`)
+            conv.close(homeKeeperAppCard)
+            return
         }
 
         conv.ask(`Hey ${name}, how can I help?`);
         return conv.ask(risco_operation_carousel);
     }
 
-    return conv.close(`You must sign in first. For that you'll need to say \"I want to sign in\".`);
+    return conv.ask(new Confirmation(`You need to sign in to use this app. Would you like to do that?`));
 });
 
 app.intent('Signin Confirmation', async (conv, params, confirmationGranted) => {
     if (confirmationGranted) {
         const payload = conv.user.profile.payload;
+
+        if (!payload) {
+            conv.ask(new SignIn('To personalize'));
+            return
+        }
+
         const email = payload.email;
     
         var user = await getUserByEmail(email);
@@ -162,10 +182,10 @@ app.intent('Signin Confirmation', async (conv, params, confirmationGranted) => {
             conv.user.storage.id = conv.data.id;
         }
 
-        var riscoAccount = getRiscoAccount(conv.user.storage.id);
+        var riscoAccount = await getRiscoAccount(conv.user.storage.id);
         if (!riscoAccount) {
-            conv.ask(homeKeeperAppCard);
-            conv.close(`Thank you for signing in! Please proceed to adding a device at the link above.`);
+            conv.ask(`Thank you for signing in! Please proceed to adding a device in the following link.`);
+            conv.close(homeKeeperAppCard);
         } else {
             conv.ask("OK, you're all set up, what would you like to do?");
             conv.ask(risco_operation_carousel);

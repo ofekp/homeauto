@@ -89,8 +89,9 @@ function RiscoDevice(props) {
       if (userDetailsResponse.status === 401) {
         props.handleLogout()
       } else if (userDetailsResponse.status === 200) {
-        const userDetailsStr = JSON.stringify(userDetails);
-        props.updateUserDetails(userDetailsStr);
+        const userDetails = await userDetailsResponse['data']
+        const userDetailsStr = JSON.stringify(userDetails)
+        props.updateUserDetails(userDetailsStr)
       } else {
         // create a new account for the user
         console.log("ERROR: When deleting a user defined device.");

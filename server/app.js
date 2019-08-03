@@ -95,6 +95,43 @@ mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
+app.post('/home-keeper/login/sessions', (req, res, next) => {
+  if (req.session.email && req.session.email === process.env.ADMIN_EMAIL) {
+    db.db.listCollections().toArray(function (err, names) {
+      console.log(names)
+    })
+    db.db.collection('sessions', function (err, collection) {
+      collection.find().sort(['expires']).toArray(function (err, sessions) {
+        if (sessions.length > 0) {
+          res.send({ title: 'List Sessions', sessions: sessions })
+        } else {
+          res.send({ title: 'List Sessions', sessions: "No sessions found" })
+        }
+      })
+    })
+  }
+});
+
+var Schema = mongoose.Schema;
+Session = mongoose.model('Session', 
+          new Schema({ _id: String, session: String, expires: Date}), 
+          'sessions');     // collection name
+
+app.post('/home-keeper/login/revoke-all', async (req, res, next) => {
+  if (!req.session.email) {
+    // there are errors
+    res.status(401)
+    res.send("Unautorized.");
+    return;
+  }
+  sessions = await Session.find({'session': { "$regex": req.session.email, "$options": "i" } })
+  sessions.forEach(async function (session) {
+    console.log("removing " + session._id)
+    await Session.findOneAndRemove({ '_id': session._id })
+  })
+  res.send({ title: "Revoke All", revoked: sessions.length })
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');

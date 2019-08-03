@@ -47,6 +47,7 @@ RUN crontab /etc/cron.d/renew-cron
 
 # Create the log file to be able to run tail
 RUN touch /var/log/cron.log
+RUN chmod 755 /var/log/cron.log
 
 # Run the command on container startup
 CMD cron && tail -f /var/log/cron.log

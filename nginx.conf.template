@@ -2,6 +2,21 @@ events {
 }
 
 http {
+
+  server {
+    listen         80;
+    server_name    ${DOMAIN};
+
+    location /.well-known/acme-challenge {
+        proxy_pass http://server:80;
+        rewrite ^(/.*)$ $1 break;
+    }
+
+    location / {
+      return 301 https://$server_name$request_uri;
+    }
+  }
+
   server {
     server_name ${DOMAIN};
 
@@ -19,9 +34,10 @@ http {
         rewrite ^(/home-keeper.*)$ $1 break;
     }
 
+    # https://www.google.com/webmasters/verification/home
     location /googlec923142279c08706.html {
         proxy_pass http://server:80;
-        rewrite ^(/home-keeper/google-domain-owner-verification.*)$ $1 break;
+        rewrite ^(/googlec923142279c08706.html)$ $1 break;
     }
 
     location / {
