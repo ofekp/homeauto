@@ -22,8 +22,6 @@ var mongoDB = 'mongodb://dbuser:mydbdbmy@mongo:27017/db'  // `mongo` is the name
 // Login
 // =====
 
-console.log(process.env.EXPRESS_SESSION_SECRET)
-
 var sess = {
   key: 'user_sid',
   // genid: async function(req) {

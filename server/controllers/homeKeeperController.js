@@ -53,17 +53,17 @@ const createUser = async(email, name) => {
 
 risco_operation_carousel = new Carousel({
     items: {
-      disarm: {
+      'disarm': {
         title: 'Disarm Risco',
         description: 'Disarm Risco',
       },
-      arm_partially: {
-        title: 'Arm Risco',
-        description: 'Arm Risco',
-      },
-      arm_fully: {
+      'arm_partially': {
         title: 'Arm Risco partially',
         description: 'Arm Risco only in selected areas',
+      },
+      'arm_fully': {
+        title: 'Arm Risco',
+        description: 'Arm Risco in all areas',
       }
     }
 })
@@ -141,7 +141,6 @@ app.intent("Default Welcome Intent", async (conv) => {
         }
 
         // the user was found
-        console.log(conv.user.storage.id)
         var riscoAccount = await getRiscoAccount(conv.user.storage.id);
         if (!riscoAccount) {
             conv.ask(`You must add a device first, please visit the following link to add a device.`)
@@ -234,14 +233,14 @@ async function executeRiscoAction(conv, riscoAccount, action) {
             message = 'Risco device is now armed.';
         }
     } else {
-        message = 'Something went wrong, Risco state cannot be determined. Are your Risco account details correct? you can try to set it up again using the link below.';
+        message = 'Something went wrong, Risco state could not be determined. Are your Risco account details correct? you can try to set it up again using the link below.';
     }
     return message
 }
 
 app.intent('Carousel Selection', async (conv, params, option) => {
     if (!option) {
-        return conv.close("Nothing was selection, bye bye!");
+        return conv.close("Nothing was selected, bye bye!");
     }
     var riscoAccount = await getRiscoAccount(conv.user.storage.id);
     if (!riscoAccount) {
