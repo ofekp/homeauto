@@ -1,2 +1,3 @@
-0 3 */16 * * root /scripts/certbot-auto renew >> /var/log/cron.log 2>&1
-# An empty line is required at the end of this file for a valid cron file.
+# renew SSL certificates
+*/1 * * * * root echo "heartbeat" >> /var/log/renew-cron.log 2>&1
+8 1 * * * root /scripts/certbot-auto renew >> /var/log/renew-cron.log 2>&1

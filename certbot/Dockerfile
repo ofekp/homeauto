@@ -26,7 +26,7 @@ RUN /scripts/certbot-auto -n certificates
 # example for output:
 # Expiry Date: 2019-08-26 21:20:58+00:00 (VALID: 89 days)
 
-# register script is needed only on the first time of crtificating a domain
+# register script is needed only on the first time of certificating a domain
 COPY register .
 RUN chmod a+x ./register
 
@@ -37,17 +37,24 @@ VOLUME /etc/letsencrypt
 # This installs a Crontab entry which 
 # runs "certbot renew" at 03:00 on every 16th day-of-month (twice a month - 1st and 17th)
 # Copy renew-cron file to the cron.d directory
-COPY renew-cron /etc/cron.d/renew-cron
+#COPY renew-cron /etc/cron.d/renew-cron
 
 # Give execution rights on the cron job
-RUN chmod 0644 /etc/cron.d/renew-cron
+#RUN chmod 0644 /etc/cron.d/renew-cron
 
 # Apply cron job
-RUN crontab /etc/cron.d/renew-cron
+#RUN crontab /etc/cron.d/renew-cron
 
 # Create the log file to be able to run tail
-RUN touch /var/log/cron.log
-RUN chmod 755 /var/log/cron.log
+RUN touch /var/log/renew-cron.log
+RUN chmod 755 /var/log/renew-cron.log
+
+#COPY renew-cron .
+RUN echo "5 9 * * * root echo \"[$(date)] heartbeat\" >> /var/log/renew-cron.log 2>&1" >> /etc/crontab
+RUN echo "5 9 * * * root /scripts/certbot-auto renew >> /var/log/renew-cron.log 2>&1" >> /etc/crontab
+# An empty line is required at the end of this file for a valid cron file.
+RUN echo "#" >> /etc/crontab
+#RUN cat /etc/crontab
 
 # Run the command on container startup
-CMD cron && tail -f /var/log/cron.log
+CMD cron && tail -f /var/log/renew-cron.log
