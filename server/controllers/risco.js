@@ -48,12 +48,13 @@ exports.login = async(account) => {
             return null;
         }
 
-        set_cookie_str = response.headers['set-cookie'][0];
-        asp_session_id = set_cookie_str.substring(set_cookie_str.indexOf("ASP.NET_SessionId") + 18, set_cookie_str.indexOf(';'));
+        set_cookie_str = response.headers['set-cookie'][0]
+        asp_session_id = set_cookie_str.substring(set_cookie_str.indexOf("ASP.NET_SessionId") + 18, set_cookie_str.indexOf(';'))
+        cookie_str = response.headers['set-cookie'][0] + '; ' + response.headers['set-cookie'][1] + '; ' + response.headers['set-cookie'][2]
 
         var headers2 = {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Cookie': response.headers['set-cookie'][0],
+          'Cookie': cookie_str,
         }
 
         var location = response.headers['location'];
@@ -67,7 +68,6 @@ exports.login = async(account) => {
         var selectedSiteId = body2.match(/\<input checked=\"checked\".*value=\"(?<selectedSiteId>[0-9]+)\".*\/>/).groups.selectedSiteId;
         body_str = "SelectedSiteId=" + selectedSiteId + "&Pin=" + JSON.parse(account.additional_data).pin
         RUCCookie = 'username=' + account.user_name + '&langId=en&isForcedLangId=False';
-        cookie_str = 'RUCCookie=' + RUCCookie + '; ASP.NET_SessionId=' + asp_session_id
 
         var headers3 = {
             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
