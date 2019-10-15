@@ -6,6 +6,7 @@ services:
     container_name: nginx
     volumes:
       - ./nginx.conf.template:/etc/nginx/template/nginx.conf.template
+      - ./nginx_register_certificate.conf.template:/etc/nginx/template/nginx_register_certificate.conf.template
       - ./nginx_error.log:/etc/nginx/error_log.log
       - ./options-ssl-nginx.conf:/etc/nginx/options-ssl-nginx.conf
       - certbot-webroot:/webroots/${DOMAIN}/.well-known
@@ -23,7 +24,15 @@ services:
       - DOMAIN
     # command to replace env vars in the nginx.conf file
     # note that \$ escaping does not work
-    command: /bin/bash -c "envsubst '$$KEY_PATH $$CERT_PATH $$CA_PATH $$DOMAIN' < /etc/nginx/template/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'" 
+    command: >
+            /bin/bash -c "if [[ -f ${KEY_PATH} && -f ${CERT_PATH} ]];
+            then
+              envsubst '$$KEY_PATH $$CERT_PATH $$CA_PATH $$DOMAIN' < /etc/nginx/template/nginx.conf.template > /etc/nginx/nginx.conf;
+            else
+              echo 'No SSL certificate was found. Will use limited configuration file to allow for an SSL certificate registration.'; 
+              envsubst '$$DOMAIN' < /etc/nginx/template/nginx_register_certificate.conf.template > /etc/nginx/nginx.conf;
+            fi;
+            nginx -g 'daemon off;';"
 
   mongo:
     container_name: mongo
