@@ -27,6 +27,7 @@ services:
     command: >
             /bin/bash -c "if [[ -f ${KEY_PATH} && -f ${CERT_PATH} ]];
             then
+              echo 'Starting...';
               envsubst '$$KEY_PATH $$CERT_PATH $$CA_PATH $$DOMAIN' < /etc/nginx/template/nginx.conf.template > /etc/nginx/nginx.conf;
             else
               echo 'No SSL certificate was found. Will use limited configuration file to allow for an SSL certificate registration.'; 
