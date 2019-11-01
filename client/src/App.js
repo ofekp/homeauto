@@ -191,7 +191,7 @@ class App extends Component {
           <Grid
             justify="space-between"
             container 
-            spacing={1}
+            spacing={0}
           >
             <Grid item>
               <Tabs value={this.state.content !== "login" ? this.state.content : false} onChange={(event, newValue) => { this.setState({content: newValue}) }}>

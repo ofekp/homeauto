@@ -1,0 +1,23 @@
+events {
+}
+
+http {
+
+  # this is used when either ${CERT_PATH} or ${KEY_PATH} files do not exist
+  # it allows to register a new certificate with certbot
+  # otherwise nginx service would fail and the server will not be able to respond to the acme challenge
+
+  server {
+    listen         80;
+    server_name    ${DOMAIN};
+
+    location /.well-known/acme-challenge {
+        proxy_pass http://server:80;
+        rewrite ^(/.*)$ $1 break;
+    }
+
+    location / {
+      return 301 https://$server_name$request_uri;
+    }
+  }
+}
